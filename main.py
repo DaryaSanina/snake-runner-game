@@ -9,7 +9,7 @@ def generate_road_part():
     if not road_parts.sprites():
         # Create first road part sprites that fill the whole length of the road
         first_road_parts = list()
-        for y in range(-round(road_part_side) + 1, round(screen_height), -round(road_part_side)):
+        for y in range(-road_part_side + 1, round(screen_height), road_part_side):
             road_part = RoadPart(screen_width // 5 * 2, y, road_part_side)
             first_road_parts.append(road_part)
         for road_part in reversed(first_road_parts):
@@ -114,9 +114,14 @@ if __name__ == '__main__':
 
     pygame.display.set_caption("Snake Runner")
 
-    snake = Snake(velocity=50)
     fps = 60
     road_part_side = int(screen_width // 5)
+
+    snake_group = pygame.sprite.Group()
+    snake = Snake(velocity=50)
+    snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
+    snake.rect.y = screen_height - snake.rect.height
+    snake_group.add(snake)
 
     road_parts = pygame.sprite.Group()
     road_connections = list()
@@ -141,6 +146,8 @@ if __name__ == '__main__':
         for connection in road_connections:
             connection.draw(screen)
         road_connections = list()
+
+        snake_group.draw(screen)
 
         pygame.display.flip()
 

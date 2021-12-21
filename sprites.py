@@ -31,6 +31,9 @@ class Snake(pygame.sprite.Sprite):
     def __init__(self, velocity, *group):
         super(Snake, self).__init__(*group)
         self.velocity = velocity
+
+        self.image = load_image('textures\\snake\\snakeSlime.png')
+        self.rect = self.image.get_rect()
     # TODO
 
 
