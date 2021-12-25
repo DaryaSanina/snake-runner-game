@@ -130,6 +130,7 @@ if __name__ == '__main__':
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
+    frames = 0
     running = True
     while running:
         for event in pygame.event.get():
@@ -147,8 +148,22 @@ if __name__ == '__main__':
             connection.draw(screen)
         road_connections = list()
 
+        if frames % 10 == 0:
+            if snake.animation_frame == 0:
+                snake.animation_frame = 1
+                snake.image = load_image('textures\\snake\\snakeSlime_ani.png')
+                snake.rect = snake.image.get_rect()
+                snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
+                snake.rect.y = screen_height - snake.rect.height
+            else:
+                snake.animation_frame = 0
+                snake.image = load_image('textures\\snake\\snakeSlime.png')
+                snake.rect = snake.image.get_rect()
+                snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
+                snake.rect.y = screen_height - snake.rect.height
         snake_group.draw(screen)
 
         pygame.display.flip()
+        frames = (frames + 1) % 10 ** 9
 
     pygame.quit()
