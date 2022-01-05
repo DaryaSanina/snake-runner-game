@@ -26,7 +26,7 @@ def generate_road_part():
         road_parts.add(road_part)
 
 
-def move_road():
+def move_road(distance):
     # If the road part sprite is under the bottom edge of the window, delete it
     if road_parts.sprites()[-1].rect.y >= screen_height:
         last_sprite = road_parts.sprites()[-1]
@@ -36,7 +36,6 @@ def move_road():
     prev_x = 0
 
     # Move all the road part sprites down
-    distance = snake.velocity * clock.tick(fps) / 1000
     for road_part in road_parts:
         road_part.rect.y += round(distance)
 
@@ -57,7 +56,7 @@ def move_road():
                 connection_start = RoadPart(prev_x, cur_y + road_part_side, road_part_side)
                 connection_start.image = load_image('textures\\road\\Tiles\\tile_0027.png')
                 connection_start.image = pygame.transform.scale(connection_start.image,
-                                                               (road_part_side, road_part_side))
+                                                                (road_part_side, road_part_side))
                 connection.add(connection_start)
 
                 # Create middle parts of the connection
@@ -121,6 +120,7 @@ if __name__ == '__main__':
     snake = Snake(velocity=50)
     snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
     snake.rect.y = screen_height - snake.rect.height
+    full_turned_snake_image = None
     snake_group.add(snake)
 
     road_parts = pygame.sprite.Group()
@@ -136,31 +136,73 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT and snake.direction == 'up':
+                    full_turned_snake_image = pygame.transform.rotate(
+                        load_image('textures\\snake\\snakeSlime.png'), 90)
+                    snake.turn_left(full_turned_snake_image)
+                if event.key == pygame.K_RIGHT and snake.direction == 'up':
+                    full_turned_snake_image = pygame.transform.rotate(
+                        load_image('textures\\snake\\snakeSlime.png'), -90)
+                    snake.turn_right(full_turned_snake_image)
+                if event.key == pygame.K_UP:
+                    snake.turn_forward(road_part_side)
+                    clock = pygame.time.Clock()
 
-        screen.fill(grass_color)
+        if snake.direction == "up":
+            # Generate and move the road
+            screen.fill(grass_color)
+            if not road_parts.sprites() or road_parts.sprites()[-1].rect.y > 0:
+                generate_road_part()
 
-        if not road_parts.sprites() or road_parts.sprites()[-1].rect.y > 0:
-            generate_road_part()
+            move_road(distance=snake.velocity * clock.tick(fps) / 1000)
+            road_parts.draw(screen)
+            for connection in road_connections:
+                connection.draw(screen)
+            road_connections = list()
 
-        move_road()
-        road_parts.draw(screen)
-        for connection in road_connections:
-            connection.draw(screen)
-        road_connections = list()
+            # Snake animation
+            if frames % 10 == 0:
+                if snake.animation_frame == 0:
+                    snake.animation_frame = 1
+                    x = snake.rect.x
+                    snake.image = load_image('textures\\snake\\snakeSlime_ani.png')
+                    snake.rect = snake.image.get_rect()
+                    snake.rect.x = x
+                    snake.rect.y = screen_height - snake.rect.height
+                else:
+                    snake.animation_frame = 0
+                    x = snake.rect.x
+                    snake.image = load_image('textures\\snake\\snakeSlime.png')
+                    snake.rect = snake.image.get_rect()
+                    snake.rect.x = x
+                    snake.rect.y = screen_height - snake.rect.height
+        if snake.direction == 'left':
+            # Draw grass and the road
+            screen.fill(grass_color)
+            move_road(distance=0)
+            road_parts.draw(screen)
+            for connection in road_connections:
+                connection.draw(screen)
+            road_connections = list()
 
-        if frames % 10 == 0:
-            if snake.animation_frame == 0:
-                snake.animation_frame = 1
-                snake.image = load_image('textures\\snake\\snakeSlime_ani.png')
-                snake.rect = snake.image.get_rect()
-                snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
-                snake.rect.y = screen_height - snake.rect.height
-            else:
-                snake.animation_frame = 0
-                snake.image = load_image('textures\\snake\\snakeSlime.png')
-                snake.rect = snake.image.get_rect()
-                snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
-                snake.rect.y = screen_height - snake.rect.height
+            # Move the snake
+            snake.move_left(full_turned_snake_image,
+                            distance=clock.tick(fps) * snake.velocity / 1000)
+
+        if snake.direction == 'right':
+            # Draw grass and the road
+            screen.fill(grass_color)
+            move_road(distance=0)
+            road_parts.draw(screen)
+            for connection in road_connections:
+                connection.draw(screen)
+            road_connections = list()
+
+            # Move the snake
+            snake.move_right(full_turned_snake_image,
+                             distance=clock.tick(fps) * snake.velocity / 1000)
+
         snake_group.draw(screen)
 
         pygame.display.flip()

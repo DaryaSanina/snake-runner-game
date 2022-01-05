@@ -1,6 +1,9 @@
 import pygame
 import os
 import sys
+from PIL import Image
+
+DIRECTIONS = ["up", "left", "right"]
 
 
 def load_image(name, color_key=None):
@@ -9,6 +12,16 @@ def load_image(name, color_key=None):
         print(f"File '{fullname}' not found")
         sys.exit()
     image = pygame.image.load(fullname)
+    return image
+
+
+def crop_image(image, left, top, right, bottom):
+    rect = image.get_rect()
+    pil_string_image = pygame.image.tostring(image, "RGBA", False)
+    pil_image = Image.frombytes("RGBA", (rect.width, rect.height), pil_string_image)
+    pil_image = pil_image.crop((left, top, right, bottom))
+    pil_bytes_image = pil_image.tobytes()
+    image = pygame.image.fromstring(pil_bytes_image, pil_image.size, pil_image.mode)
     return image
 
 
@@ -23,24 +36,82 @@ class RoadPart(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         self.rect.width = self.rect.height = side
-    # TODO
-    pass
 
 
 class Snake(pygame.sprite.Sprite):
     def __init__(self, velocity, *group):
         super(Snake, self).__init__(*group)
         self.velocity = velocity
+        self.direction = DIRECTIONS[0]  # DIRECTIONS[0] = "up"
+        self.column = 3
 
         self.animation_frame = 0
         self.image = load_image('textures\\snake\\snakeSlime.png')
         self.rect = self.image.get_rect()
+
+    def turn_left(self, full_turned_snake_image):
+        if self.direction == 'up':
+            x = self.rect.x
+            y = self.rect.y
+            snake_length = self.rect.height
+            snake_width = self.rect.width
+
+            # Prepare the turning animation
+            self.image = crop_image(full_turned_snake_image,
+                                    0, 0, snake_width, snake_width)
+            self.rect = self.image.get_rect()
+            self.rect.x = x - snake_width
+            self.rect.y = y
+
+            self.direction = DIRECTIONS[1]  # DIRECTIONS[1] = "left"
+
+    def turn_right(self, full_turned_snake_image):
+        if self.direction == 'up' and self.column < 5:
+            x = self.rect.x
+            y = self.rect.y
+
+            # Prepare the turning animation
+            snake_length = self.rect.height
+            snake_width = self.rect.width
+            self.image = crop_image(full_turned_snake_image,
+                                    snake_length - snake_width, 0, snake_length, snake_width)
+            self.rect = self.image.get_rect()
+            self.rect.x = x + snake_width
+            self.rect.y = y
+            self.direction = DIRECTIONS[2]  # DIRECTIONS[2] = "right"
+
+    def turn_forward(self, road_part_side):
+        pass
+
+    def move_left(self, full_turned_snake_image, distance):
+        snake_width = self.rect.width
+        x = self.rect.x
+        y = self.rect.y
+        self.image = crop_image(full_turned_snake_image,
+                                0, 0, snake_width + distance, snake_width)
+        self.rect = self.image.get_rect()
+        self.rect.x = round(x - distance)
+        self.rect.y = y
+
+    def move_right(self, full_turned_snake_image, distance):
+        x = self.rect.x
+        y = self.rect.y
+        full_turned_snake_rect = full_turned_snake_image.get_rect()
+        snake_width = self.rect.width
+        snake_length = full_turned_snake_rect.width
+        self.image = crop_image(full_turned_snake_image,
+                                snake_length - snake_width - distance,
+                                0, snake_length, snake_width)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
     # TODO
 
 
 class Monster(pygame.sprite.Sprite):
     def __init__(self, *group):
         super(Monster, self).__init__(*group)
+
     # TODO
     pass
 
@@ -48,5 +119,6 @@ class Monster(pygame.sprite.Sprite):
 class Apple(pygame.sprite.Sprite):
     def __init__(self, *group):
         super(Apple, self).__init__(*group)
+
     # TODO
     pass
