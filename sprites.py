@@ -80,13 +80,26 @@ class Snake(pygame.sprite.Sprite):
             self.rect.y = y
             self.direction = DIRECTIONS[2]  # DIRECTIONS[2] = "right"
 
-    def turn_forward(self, road_part_side):
-        pass
-
-    def move_left(self, full_turned_snake_image, distance):
-        snake_width = self.rect.width
+    def turn_forward(self, full_snake_image):
         x = self.rect.x
         y = self.rect.y
+
+        # Prepare the turning animation
+        snake_length = self.rect.width
+        snake_width = full_snake_image.get_width()
+        self.image = crop_image(full_snake_image, 0, 0, snake_width, snake_width)
+        self.rect = self.image.get_rect()
+        if self.direction == 'left':
+            self.rect.x = x
+        elif self.direction == 'right':
+            self.rect.x = x + snake_length - snake_width
+        self.rect.y = y
+        self.direction = DIRECTIONS[0]  # DIRECTIONS[0] = "up"
+
+    def move_left(self, full_turned_snake_image, distance):
+        x = self.rect.x
+        y = self.rect.y
+        snake_width = self.rect.width
         self.image = crop_image(full_turned_snake_image,
                                 0, 0, snake_width + distance, snake_width)
         self.rect = self.image.get_rect()
@@ -102,6 +115,16 @@ class Snake(pygame.sprite.Sprite):
         self.image = crop_image(full_turned_snake_image,
                                 snake_length - snake_width - distance,
                                 0, snake_length, snake_width)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def move_forward_after_turning(self, full_snake_image, distance):
+        x = self.rect.x
+        y = self.rect.y
+        snake_length = self.rect.height
+        snake_width = self.rect.width
+        self.image = crop_image(full_snake_image, 0, 0, snake_width, snake_length + distance)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
