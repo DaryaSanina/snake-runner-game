@@ -2,7 +2,7 @@ import pygame
 import pyautogui
 import random
 
-from sprites import RoadPart, Snake, load_image
+from sprites import RoadPart, Snake, SnakeTail, load_image, SNAKE_DIRECTIONS
 
 
 def generate_road_part():
@@ -117,11 +117,18 @@ if __name__ == '__main__':
     road_part_side = int(screen_width // 5)
 
     snake_group = pygame.sprite.Group()
+
     snake = Snake(velocity=50)
     snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
-    snake.rect.y = screen_height - snake.rect.height
+    snake.rect.y = screen_height * 3 // 4
+
     full_turned_snake_image = None
-    full_snake_image = None
+    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+
+    snake_tail = SnakeTail(snake.velocity)
+    snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
+    snake_tail.rect.y = screen_height * 3 // 4
+
     snake_group.add(snake)
 
     road_parts = pygame.sprite.Group()
@@ -142,14 +149,37 @@ if __name__ == '__main__':
                     full_turned_snake_image = pygame.transform.rotate(
                         load_image('textures\\snake\\snakeSlime.png'), 90)
                     snake.turn_left(full_turned_snake_image)
+                    snake_tail.turn_left_or_right(full_snake_image,
+                                                  snake_x=snake.rect.x, snake_y=snake.rect.y)
+                    snake_tail.direction = SNAKE_DIRECTIONS[1]  # SNAKE_DIRECTIONS[1] = "left"
+
+                    snake_group.remove(snake)
+                    snake_group.add(snake_tail)
+                    snake_group.add(snake)
+
                 if event.key == pygame.K_RIGHT and snake.direction == 'up':
                     full_turned_snake_image = pygame.transform.rotate(
                         load_image('textures\\snake\\snakeSlime.png'), -90)
                     snake.turn_right(full_turned_snake_image)
+                    snake_tail.turn_left_or_right(full_snake_image,
+                                                  snake_x=snake.rect.x, snake_y=snake.rect.y)
+                    snake_tail.direction = SNAKE_DIRECTIONS[2]  # SNAKE_DIRECTIONS[2] = "right"
+
+                    snake_group.remove(snake)
+                    snake_group.add(snake_tail)
+                    snake_group.add(snake)
+
                 if event.key == pygame.K_UP \
                         and (snake.direction == 'left' or snake.direction == 'right'):
-                    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
                     snake.turn_forward(full_snake_image)
+                    snake_tail.turn_forward(full_turned_snake_image,
+                                            snake_x=snake.rect.x, snake_y=snake.rect.y,
+                                            snake_width=snake.rect.width)
+
+                    snake_group.remove(snake)
+                    snake_group.add(snake_tail)
+                    snake_group.add(snake)
+
                     clock = pygame.time.Clock()
 
         if snake.direction == "up":
@@ -167,6 +197,8 @@ if __name__ == '__main__':
 
             # If the snake is fully turned forward:
             if full_snake_image is None or full_snake_image.get_height() == snake.rect.height:
+                snake_tail.direction = SNAKE_DIRECTIONS[0]  # SNAKE_DIRECTIONS[0] = "up"
+
                 # Snake animation
                 if frames % 10 == 0:
                     if snake.animation_frame == 0:
@@ -175,20 +207,25 @@ if __name__ == '__main__':
                         snake.image = load_image('textures\\snake\\snakeSlime_ani.png')
                         snake.rect = snake.image.get_rect()
                         snake.rect.x = x
-                        snake.rect.y = screen_height - snake.rect.height
+                        snake.rect.y = screen_height * 3 // 4
                     else:
                         snake.animation_frame = 0
                         x = snake.rect.x
                         snake.image = load_image('textures\\snake\\snakeSlime.png')
                         snake.rect = snake.image.get_rect()
                         snake.rect.x = x
-                        snake.rect.y = screen_height - snake.rect.height
-            else:
+                        snake.rect.y = screen_height * 3 // 4
+            elif full_turned_snake_image is not None:
+                # Move the snake's tail
+                snake_tail.move_forward_after_turning(full_turned_snake_image, distance=distance)
+
                 # Move the snake forward
                 snake.move_forward_after_turning(full_snake_image,
                                                  distance=distance)
 
         if snake.direction == 'left':
+            snake_moving_distance = clock.tick(fps) * snake.velocity / 1000
+
             # Draw grass and the road
             screen.fill(grass_color)
             move_road(distance=0)
@@ -196,12 +233,20 @@ if __name__ == '__main__':
             for connection in road_connections:
                 connection.draw(screen)
             road_connections = list()
+
+            # Move the snake's tail
+            if snake_tail.rect.height > snake_tail.rect.width:
+                snake_tail.move_left_or_right(full_snake_image, distance=snake_moving_distance)
+            else:
+                snake_group.remove(snake_tail)
 
             # Move the snake
             snake.move_left(full_turned_snake_image,
-                            distance=clock.tick(fps) * snake.velocity / 1000)
+                            distance=snake_moving_distance)
 
         if snake.direction == 'right':
+            snake_moving_distance = clock.tick(fps) * snake.velocity / 1000
+
             # Draw grass and the road
             screen.fill(grass_color)
             move_road(distance=0)
@@ -210,9 +255,15 @@ if __name__ == '__main__':
                 connection.draw(screen)
             road_connections = list()
 
+            # Move the snake's tail
+            if snake_tail.rect.height > snake_tail.rect.width:
+                snake_tail.move_left_or_right(full_snake_image, distance=snake_moving_distance)
+            else:
+                snake_group.remove(snake_tail)
+
             # Move the snake
             snake.move_right(full_turned_snake_image,
-                             distance=clock.tick(fps) * snake.velocity / 1000)
+                             distance=snake_moving_distance)
 
         snake_group.draw(screen)
 
