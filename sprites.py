@@ -101,6 +101,7 @@ class Snake(pygame.sprite.Sprite):
         x = self.rect.x
         y = self.rect.y
         snake_width = self.rect.width
+        snake_height = self.rect.height
 
         self.image = crop_image(full_turned_snake_image,
                                 0, 0, snake_width + distance, snake_width)
@@ -108,6 +109,7 @@ class Snake(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = round(x - distance)
         self.rect.y = y
+        self.rect.height = snake_height
 
     def move_right(self, full_turned_snake_image, distance):
         x = self.rect.x
@@ -115,6 +117,7 @@ class Snake(pygame.sprite.Sprite):
         full_turned_snake_rect = full_turned_snake_image.get_rect()
         snake_width = self.rect.width
         snake_length = full_turned_snake_rect.width
+        snake_height = self.rect.height
 
         self.image = crop_image(full_turned_snake_image,
                                 snake_length - snake_width - distance,
@@ -123,6 +126,7 @@ class Snake(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.rect.height = snake_height
 
     def move_forward_after_turning(self, full_snake_image, distance):
         x = self.rect.x
@@ -160,7 +164,7 @@ class SnakeTail(pygame.sprite.Sprite):
         self.image = full_turned_snake_image
         self.rect = self.image.get_rect()
         if self.direction == 'left':
-            self.rect.x = snake_x + snake_width
+            self.rect.x = snake_x
         if self.direction == 'right':
             self.rect.x = snake_x + snake_width - full_snake_length
         self.rect.y = snake_y
