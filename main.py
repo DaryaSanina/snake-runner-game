@@ -6,6 +6,31 @@ from sprites import (RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_image, cro
                      SNAKE_DIRECTIONS)
 
 
+def end_game() -> None:
+    global running
+
+    # Fill the screen with red color (alpha = 150)
+    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    surface.fill((255, 0, 0, 150))
+    screen.blit(surface, (0, 0))
+
+    # Write "Game over" on the screen
+    font = pygame.font.SysFont('comicsansms', 100)
+    text = font.render("GAME OVER!", True, (255, 255, 255))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (screen_height // 2 - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+
+        pygame.display.flip()
+
+    running = False
+
+
 def generate_road_part() -> None:
     if not road_parts.sprites():
         # Create first road part sprites that fill the whole length of the road
@@ -458,14 +483,13 @@ if __name__ == '__main__':
         # Move the snake's head point
         snake_head_point.update(snake)
 
+        snake_group.draw(screen)
+
         # If the snake is not on the road, exit the program
         if not pygame.sprite.spritecollideany(snake_head_point, road_parts) \
                 and not any([pygame.sprite.spritecollideany(snake_head_point, connection)
                              for connection in road_connections]):
-            running = False
-
-        snake_group.draw(screen)
-        pygame.draw.rect(screen, (255, 0, 0), snake_head_point.rect)
+            end_game()
 
         pygame.display.flip()
         frames = (frames + 1) % 10 ** 9
