@@ -111,7 +111,8 @@ def pause_game() -> None:
 
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
-        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames,\
+        score
 
     # Create a pause button
     pause_btn_group = pygame.sprite.Group()
@@ -141,6 +142,8 @@ def restart_game() -> None:
 
     road_parts = pygame.sprite.Group()
     road_connections = list()
+
+    score = 0
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -368,6 +371,8 @@ if __name__ == '__main__':
     start_screen_color = pygame.Color('#348C31')
     pause_screen_color = pygame.Color(0, 162, 255, 150)
     game_over_screen_color = pygame.Color(255, 0, 0, 128)
+
+    score = 0
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -700,6 +705,13 @@ if __name__ == '__main__':
         snake_group.draw(screen)  # Draw the snake
         pause_btn_group.draw(screen)  # Draw the pause button
 
+        # Display the score
+        font = pygame.font.SysFont('comicsansms', 90)
+        text = font.render(str(int(score)), True, (255, 255, 255))
+        text_x = 10
+        text_y = 10
+        screen.blit(text, (text_x, text_y))
+
         # If the snake is not on the road, exit the program
         if not pygame.sprite.spritecollideany(snake_head_point, road_parts) \
                 and not any([pygame.sprite.spritecollideany(snake_head_point, connection)
@@ -711,5 +723,6 @@ if __name__ == '__main__':
 
         road_connections = list()
         snake.velocity += 0.1
+        score += 1
 
     pygame.quit()
