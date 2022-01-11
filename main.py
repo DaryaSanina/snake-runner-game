@@ -11,7 +11,7 @@ def start_game():
 
     screen.fill(start_screen_color)  # Fill the screen with green color
 
-    # Create a start button
+    # Create a play button
     play_btn_group = pygame.sprite.Group()
     play_btn = Button(load_image('textures\\buttons\\start_btn.png'))
     play_btn.image = pygame.transform.scale(play_btn.image, (200, 200))
@@ -19,6 +19,13 @@ def start_game():
     play_btn.rect.x = (screen_width - play_btn.rect.width) // 2
     play_btn.rect.y = (screen_height - play_btn.rect.height) // 2
     play_btn_group.add(play_btn)
+
+    # Write "Snake Runner" on the screen
+    font = pygame.font.SysFont('comicsansms', 90)
+    text = font.render("SNAKE RUNNER", True, (255, 255, 0))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (play_btn.rect.x - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
 
     play_btn_group.draw(screen)
 
@@ -32,6 +39,7 @@ def start_game():
                     mouse_x, mouse_y = pygame.mouse.get_pos()
 
                     if play_btn.rect.collidepoint(mouse_x, mouse_y):
+                        restart_game()
                         return
             pygame.display.flip()
 
@@ -62,11 +70,17 @@ def pause_game() -> None:
     resume_btn.rect.y = restart_btn.rect.y - 50 - resume_btn.rect.height
     pause_screen_buttons.add(resume_btn)
 
+    # Create a home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = restart_btn.rect.y + restart_btn.rect.height + 50
+    pause_screen_buttons.add(home_btn)
+
     # Write "Pause" on the screen
     font = pygame.font.SysFont('comicsansms', 100)
     text = font.render("PAUSE", True, (255, 255, 255))
     text_x = (screen_width - text.get_width()) // 2
-    text_y = (resume_btn.rect.x // 2 - text.get_height()) // 2
+    text_y = (resume_btn.rect.x - text.get_height()) // 2
     screen.blit(text, (text_x, text_y))
 
     pause_screen_buttons.draw(screen)
@@ -86,6 +100,10 @@ def pause_game() -> None:
 
                 if restart_btn.rect.collidepoint(mouse_x, mouse_y):
                     restart_game()
+                    return
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
                     return
 
         pygame.display.flip()
@@ -173,14 +191,21 @@ def end_game() -> None:
     text_y = (screen_height // 2 - text.get_height()) // 2
     screen.blit(text, (text_x, text_y))
 
+    game_over_screen_buttons = pygame.sprite.Group()
+
     # Create a restart button
-    restart_btn_group = pygame.sprite.Group()
     restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
     restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
     restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
-    restart_btn_group.add(restart_btn)
+    game_over_screen_buttons.add(restart_btn)
 
-    restart_btn_group.draw(screen)
+    # Create a home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = restart_btn.rect.y + restart_btn.rect.height + 50
+    game_over_screen_buttons.add(home_btn)
+
+    game_over_screen_buttons.draw(screen)
 
     while running:
         for event in pygame.event.get():
@@ -188,8 +213,13 @@ def end_game() -> None:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
+
                 if restart_btn.rect.collidepoint(mouse_x, mouse_y):
                     restart_game()
+                    return
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
                     return
 
         pygame.display.flip()
