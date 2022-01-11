@@ -2,8 +2,40 @@ import pygame
 import pyautogui
 import random
 
-from sprites import (RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_image, crop_image,
+from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_image, crop_image,
                      SNAKE_DIRECTIONS)
+
+
+def restart_game():
+    global snake_group, snake, full_turned_snake_image, full_snake_image, snake_tail,\
+        snake_head_point, road_parts, road_connections, clock, frames
+
+    snake_group = pygame.sprite.Group()
+
+    snake = Snake(velocity=50)
+    snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
+    snake.rect.y = screen_height * 3 // 4
+
+    full_turned_snake_image = None
+    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+
+    snake_tail = SnakeTail()
+    snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
+    snake_tail.rect.y = screen_height * 3 // 4
+
+    snake_head_point = SnakeHeadPoint()
+    snake_head_point.rect.x = snake.rect.x + snake.rect.width // 2
+    snake_head_point.rect.y = snake.rect.y
+
+    snake_group.add(snake)
+
+    road_parts = pygame.sprite.Group()
+    road_connections = list()
+
+    # Create clock to move the road more smoothly
+    clock = pygame.time.Clock()
+
+    frames = 0
 
 
 def end_game() -> None:
@@ -21,10 +53,23 @@ def end_game() -> None:
     text_y = (screen_height // 2 - text.get_height()) // 2
     screen.blit(text, (text_x, text_y))
 
+    restart_btn_group = pygame.sprite.Group()
+    restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
+    restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
+    restart_btn.rect.y = screen_height // 2 + (screen_height // 2 - restart_btn.rect.height) // 2
+    restart_btn_group.add(restart_btn)
+
+    restart_btn_group.draw(screen)
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if restart_btn.rect.collidepoint(mouse_x, mouse_y):
+                    restart_game()
+                    return
 
         pygame.display.flip()
 
@@ -168,7 +213,9 @@ if __name__ == '__main__':
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
+
     frames = 0
+
     running = True
     while running:
         tick = clock.tick(fps)

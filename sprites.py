@@ -4,6 +4,7 @@ import sys
 from PIL import Image
 
 SNAKE_DIRECTIONS = ["up", "left", "right"]
+BUTTON_DIAMETER = 100
 
 
 def load_image(name, color_key=None):
@@ -23,6 +24,14 @@ def crop_image(image, left, top, right, bottom):
     pil_bytes_image = pil_image.tobytes()
     image = pygame.image.fromstring(pil_bytes_image, pil_image.size, pil_image.mode)
     return image
+
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self, image: pygame.Surface, *group):
+        super(Button, self).__init__(*group)
+        self.image = image
+        self.image = pygame.transform.scale(self.image, (BUTTON_DIAMETER, BUTTON_DIAMETER))
+        self.rect = self.image.get_rect()
 
 
 class RoadPart(pygame.sprite.Sprite):
