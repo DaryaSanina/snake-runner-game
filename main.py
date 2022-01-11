@@ -6,6 +6,109 @@ from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_im
                      SNAKE_DIRECTIONS)
 
 
+def start_game():
+    global running
+
+    screen.fill(start_screen_color)  # Fill the screen with green color
+
+    # Create a play button
+    play_btn_group = pygame.sprite.Group()
+    play_btn = Button(load_image('textures\\buttons\\start_btn.png'))
+    play_btn.image = pygame.transform.scale(play_btn.image, (200, 200))
+    play_btn.rect = play_btn.image.get_rect()
+    play_btn.rect.x = (screen_width - play_btn.rect.width) // 2
+    play_btn.rect.y = (screen_height - play_btn.rect.height) // 2
+    play_btn_group.add(play_btn)
+
+    # Write "Snake Runner" on the screen
+    font = pygame.font.SysFont('comicsansms', 90)
+    text = font.render("SNAKE RUNNER", True, (255, 255, 0))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (play_btn.rect.x - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+    play_btn_group.draw(screen)
+
+    while running:
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.WINDOWCLOSE:
+                    running = False
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                    if play_btn.rect.collidepoint(mouse_x, mouse_y):
+                        restart_game()
+                        return
+            pygame.display.flip()
+
+
+def pause_game() -> None:
+    global running, clock
+
+    # Delete the pause button
+    pause_btn.kill()
+    pygame.draw.rect(screen, grass_color, pause_btn.rect)
+
+    # Fill the screen with an RGBA color (red = 0, green = 162, blue = 255, alpha = 150)
+    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    surface.fill(pause_screen_color)
+    screen.blit(surface, (0, 0))
+
+    pause_screen_buttons = pygame.sprite.Group()
+
+    # Create a restart button
+    restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
+    restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
+    restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
+    pause_screen_buttons.add(restart_btn)
+
+    # Create a resume button
+    resume_btn = Button(load_image('textures\\buttons\\start_btn.png'))
+    resume_btn.rect.x = (screen_width - resume_btn.rect.width) // 2
+    resume_btn.rect.y = restart_btn.rect.y - 50 - resume_btn.rect.height
+    pause_screen_buttons.add(resume_btn)
+
+    # Create a home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = restart_btn.rect.y + restart_btn.rect.height + 50
+    pause_screen_buttons.add(home_btn)
+
+    # Write "Pause" on the screen
+    font = pygame.font.SysFont('comicsansms', 100)
+    text = font.render("PAUSE", True, (255, 255, 255))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (resume_btn.rect.x - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+    pause_screen_buttons.draw(screen)
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                if resume_btn.rect.collidepoint(mouse_x, mouse_y):
+                    clock = pygame.time.Clock()  # Restart the clock
+                    pause_btn_group.add(pause_btn)
+                    return
+
+                if restart_btn.rect.collidepoint(mouse_x, mouse_y):
+                    restart_game()
+                    return
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
+                    return
+
+        pygame.display.flip()
+
+
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
         full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames
@@ -45,61 +148,6 @@ def restart_game() -> None:
     frames = 0
 
 
-def pause():
-    global running, clock
-
-    # Delete the pause button
-    pause_btn.kill()
-    pygame.draw.rect(screen, grass_color, pause_btn.rect)
-
-    # Fill the screen with an RGBA color (red = 0, green = 162, blue = 255, alpha = 150)
-    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    surface.fill(pause_color)
-    screen.blit(surface, (0, 0))
-
-    pause_screen_buttons = pygame.sprite.Group()
-
-    # Create a restart button
-    restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
-    restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
-    restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
-    pause_screen_buttons.add(restart_btn)
-
-    # Create a resume button
-    resume_btn = Button(load_image('textures\\buttons\\start_btn.png'))
-    resume_btn.rect.x = (screen_width - resume_btn.rect.width) // 2
-    resume_btn.rect.y = restart_btn.rect.y - 50 - resume_btn.rect.height
-    pause_screen_buttons.add(resume_btn)
-
-    # Write "Pause" on the screen
-    font = pygame.font.SysFont('comicsansms', 100)
-    text = font.render("PAUSE", True, (255, 255, 255))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = (resume_btn.rect.x // 2 - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
-
-    pause_screen_buttons.draw(screen)
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.WINDOWCLOSE:
-                running = False
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-
-                if resume_btn.rect.collidepoint(mouse_x, mouse_y):
-                    clock = pygame.time.Clock()  # Restart the clock
-                    pause_btn_group.add(pause_btn)
-                    return
-
-                if restart_btn.rect.collidepoint(mouse_x, mouse_y):
-                    restart_game()
-                    return
-
-        pygame.display.flip()
-
-
 def end_game() -> None:
     global running
 
@@ -133,7 +181,7 @@ def end_game() -> None:
 
     # Fill the screen with red color (alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    surface.fill(game_over_color)
+    surface.fill(game_over_screen_color)
     screen.blit(surface, (0, 0))
 
     # Write "Game over" on the screen
@@ -143,14 +191,21 @@ def end_game() -> None:
     text_y = (screen_height // 2 - text.get_height()) // 2
     screen.blit(text, (text_x, text_y))
 
+    game_over_screen_buttons = pygame.sprite.Group()
+
     # Create a restart button
-    restart_btn_group = pygame.sprite.Group()
     restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
     restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
     restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
-    restart_btn_group.add(restart_btn)
+    game_over_screen_buttons.add(restart_btn)
 
-    restart_btn_group.draw(screen)
+    # Create a home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = restart_btn.rect.y + restart_btn.rect.height + 50
+    game_over_screen_buttons.add(home_btn)
+
+    game_over_screen_buttons.draw(screen)
 
     while running:
         for event in pygame.event.get():
@@ -158,8 +213,13 @@ def end_game() -> None:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
+
                 if restart_btn.rect.collidepoint(mouse_x, mouse_y):
                     restart_game()
+                    return
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
                     return
 
         pygame.display.flip()
@@ -305,8 +365,9 @@ if __name__ == '__main__':
     road_connections = list()
 
     grass_color = pygame.Color('#348C31')
-    game_over_color = pygame.Color((255, 0, 0, 128))
-    pause_color = pygame.Color((0, 162, 255, 150))
+    start_screen_color = pygame.Color('#348C31')
+    pause_screen_color = pygame.Color(0, 162, 255, 150)
+    game_over_screen_color = pygame.Color(255, 0, 0, 128)
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -315,6 +376,7 @@ if __name__ == '__main__':
     fps = 60
 
     running = True
+    start_game()
     while running:
         tick = clock.tick(fps)
         for event in pygame.event.get():
@@ -324,7 +386,7 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if pause_btn.rect.collidepoint(mouse_x, mouse_y):
-                    pause()
+                    pause_game()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT and snake.direction == 'up':
