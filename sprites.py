@@ -142,9 +142,8 @@ class Snake(pygame.sprite.Sprite):
 
 
 class SnakeTail(pygame.sprite.Sprite):
-    def __init__(self, velocity, *group):
+    def __init__(self, *group):
         super(SnakeTail, self).__init__(*group)
-        self.velocity = velocity
         self.image = load_image('textures\\snake\\snakeSlime.png')
         self.rect = self.image.get_rect()
 
@@ -210,6 +209,23 @@ class SnakeTail(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
             self.rect.x = round(x + distance)
             self.rect.y = round(y + distance)
+
+
+class SnakeHeadPoint(pygame.sprite.Sprite):
+    def __init__(self, *group):
+        super(SnakeHeadPoint, self).__init__(*group)
+        self.rect = pygame.Rect(0, 0, 1, 1)
+
+    def update(self, snake: Snake):
+        if snake.direction == 'up':
+            self.rect.x = snake.rect.x + snake.rect.width / 2
+            self.rect.y = snake.rect.y
+        if snake.direction == 'left':
+            self.rect.x = snake.rect.x
+            self.rect.y = snake.rect.y + snake.rect.height / 2
+        if snake.direction == 'right':
+            self.rect.x = snake.rect.x + snake.rect.width
+            self.rect.y = snake.rect.y + snake.rect.height / 2
 
 
 class Monster(pygame.sprite.Sprite):
