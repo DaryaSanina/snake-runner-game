@@ -2,10 +2,100 @@ import pygame
 import pyautogui
 import random
 
-from sprites import RoadPart, Snake, SnakeTail, load_image, crop_image, SNAKE_DIRECTIONS
+from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_image, crop_image,
+                     SNAKE_DIRECTIONS)
 
 
-def generate_road_part():
+def restart_game() -> None:
+    global snake_group, snake, full_turned_snake_image, full_snake_image, snake_tail,\
+        snake_head_point, road_parts, road_connections, clock, frames
+
+    snake_group = pygame.sprite.Group()
+
+    snake = Snake(velocity=50)
+    snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
+    snake.rect.y = screen_height * 3 // 4
+
+    full_turned_snake_image = None
+    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+
+    snake_tail = SnakeTail()
+    snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
+    snake_tail.rect.y = screen_height * 3 // 4
+
+    snake_head_point = SnakeHeadPoint()
+    snake_head_point.rect.x = snake.rect.x + snake.rect.width // 2
+    snake_head_point.rect.y = snake.rect.y
+
+    snake_group.add(snake)
+
+    road_parts = pygame.sprite.Group()
+    road_connections = list()
+
+    # Create clock to move the road more smoothly
+    clock = pygame.time.Clock()
+
+    frames = 0
+
+
+def end_game() -> None:
+    global running
+
+    # Change the snake's image to a dead snake
+    snake_x = snake.rect.x
+    snake_y = snake.rect.y
+
+    snake.image = load_image('textures\\snake\\snakeSlime_dead.png')
+
+    if snake.direction == 'left':
+        snake.image = pygame.transform.rotate(snake.image, 90)
+
+    if snake.direction == 'right':
+        snake.image = pygame.transform.rotate(snake.image, -90)
+
+    snake.image = crop_image(snake.image, 0, 0, snake.rect.width, snake.rect.height)
+
+    snake.rect = snake.image.get_rect()
+    snake.rect.x = snake_x
+    snake.rect.y = snake_y
+
+    snake_group.draw(screen)
+
+    # Fill the screen with red color (alpha = 150)
+    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    surface.fill((255, 0, 0, 150))
+    screen.blit(surface, (0, 0))
+
+    # Write "Game over" on the screen
+    font = pygame.font.SysFont('comicsansms', 100)
+    text = font.render("GAME OVER!", True, (255, 255, 255))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (screen_height // 2 - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+    # Create a restart button
+    restart_btn_group = pygame.sprite.Group()
+    restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
+    restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
+    restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
+    restart_btn_group.add(restart_btn)
+
+    restart_btn_group.draw(screen)
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if restart_btn.rect.collidepoint(mouse_x, mouse_y):
+                    restart_game()
+                    return
+
+        pygame.display.flip()
+
+
+def generate_road_part() -> None:
     if not road_parts.sprites():
         # Create first road part sprites that fill the whole length of the road
         first_road_parts = list()
@@ -26,7 +116,7 @@ def generate_road_part():
         road_parts.add(road_part)
 
 
-def move_road(distance):
+def move_road(distance: int) -> None:
     # If the road part sprite is under the bottom edge of the window, delete it
     if road_parts.sprites()[-1].rect.y >= screen_height:
         last_sprite = road_parts.sprites()[-1]
@@ -125,9 +215,13 @@ if __name__ == '__main__':
     full_turned_snake_image = None
     full_snake_image = load_image('textures\\snake\\snakeSlime.png')
 
-    snake_tail = SnakeTail(snake.velocity)
+    snake_tail = SnakeTail()
     snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
     snake_tail.rect.y = screen_height * 3 // 4
+
+    snake_head_point = SnakeHeadPoint()
+    snake_head_point.rect.x = snake.rect.x + snake.rect.width // 2
+    snake_head_point.rect.y = snake.rect.y
 
     snake_group.add(snake)
 
@@ -138,7 +232,9 @@ if __name__ == '__main__':
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
+
     frames = 0
+
     running = True
     while running:
         tick = clock.tick(fps)
@@ -154,7 +250,9 @@ if __name__ == '__main__':
                     else:
                         full_turned_snake_image = pygame.transform.rotate(
                             load_image('textures\\snake\\snakeSlime_ani.png'), 90)
+
                     snake.turn_left(full_turned_snake_image)
+
                     snake_tail.turn_left_or_right(full_snake_image,
                                                   snake_x=snake.rect.x, snake_y=snake.rect.y)
                     snake_tail.direction = SNAKE_DIRECTIONS[1]  # SNAKE_DIRECTIONS[1] = "left"
@@ -174,6 +272,7 @@ if __name__ == '__main__':
                             load_image('textures\\snake\\snakeSlime_ani.png'), -90)
 
                     snake.turn_right(full_turned_snake_image)
+
                     snake_tail.turn_left_or_right(full_snake_image,
                                                   snake_x=snake.rect.x, snake_y=snake.rect.y)
                     snake_tail.direction = SNAKE_DIRECTIONS[2]  # SNAKE_DIRECTIONS[2] = "right"
@@ -188,6 +287,7 @@ if __name__ == '__main__':
                     # The user has pressed the up arrow on the keyboard
                     # and the snake is turned left or right:
                     snake.turn_forward(full_snake_image)
+
                     snake_tail.turn_forward(full_turned_snake_image,
                                             snake_x=snake.rect.x, snake_y=snake.rect.y,
                                             snake_width=snake.rect.width)
@@ -211,7 +311,6 @@ if __name__ == '__main__':
             road_parts.draw(screen)
             for connection in road_connections:
                 connection.draw(screen)
-            road_connections = list()
 
             # Snake animation
             if frames % 10 == 0:
@@ -239,7 +338,7 @@ if __name__ == '__main__':
                     snake.rect.y = screen_height * 3 // 4
 
             # If the snake is fully turned forward:
-            if snake_tail.rect.height == snake_tail.rect.width:
+            if snake_tail.rect.height == snake_tail.rect.width or snake_tail.rect.y >= screen_height:
                 snake_tail.direction = SNAKE_DIRECTIONS[0]  # SNAKE_DIRECTIONS[0] = "up"
                 snake_group.remove(snake_tail)
 
@@ -302,7 +401,6 @@ if __name__ == '__main__':
             road_parts.draw(screen)
             for connection in road_connections:
                 connection.draw(screen)
-            road_connections = list()
 
             # Move the snake's tail
             if snake_tail.rect.height > snake_tail.rect.width:
@@ -378,7 +476,6 @@ if __name__ == '__main__':
             road_parts.draw(screen)
             for connection in road_connections:
                 connection.draw(screen)
-            road_connections = list()
 
             # Move the snake's tail
             if snake_tail.rect.height > snake_tail.rect.width:
@@ -449,9 +546,21 @@ if __name__ == '__main__':
                     snake_tail.rect.x = snake_tail_x
                     snake_tail.rect.y = snake_tail_y
 
+        # Move the snake's head point
+        snake_head_point.update(snake)
+
         snake_group.draw(screen)
+
+        # If the snake is not on the road, exit the program
+        if not pygame.sprite.spritecollideany(snake_head_point, road_parts) \
+                and not any([pygame.sprite.spritecollideany(snake_head_point, connection)
+                             for connection in road_connections]):
+            end_game()
 
         pygame.display.flip()
         frames = (frames + 1) % 10 ** 9
+
+        road_connections = list()
+        snake.velocity += 0.1
 
     pygame.quit()
