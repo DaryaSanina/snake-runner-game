@@ -6,7 +6,7 @@ from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_im
                      SNAKE_DIRECTIONS)
 
 
-def restart_game():
+def restart_game() -> None:
     global snake_group, snake, full_turned_snake_image, full_snake_image, snake_tail,\
         snake_head_point, road_parts, road_connections, clock, frames
 
@@ -41,6 +41,26 @@ def restart_game():
 def end_game() -> None:
     global running
 
+    # Change the snake's image to a dead snake
+    snake_x = snake.rect.x
+    snake_y = snake.rect.y
+
+    snake.image = load_image('textures\\snake\\snakeSlime_dead.png')
+
+    if snake.direction == 'left':
+        snake.image = pygame.transform.rotate(snake.image, 90)
+
+    if snake.direction == 'right':
+        snake.image = pygame.transform.rotate(snake.image, -90)
+
+    snake.image = crop_image(snake.image, 0, 0, snake.rect.width, snake.rect.height)
+
+    snake.rect = snake.image.get_rect()
+    snake.rect.x = snake_x
+    snake.rect.y = snake_y
+
+    snake_group.draw(screen)
+
     # Fill the screen with red color (alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
     surface.fill((255, 0, 0, 150))
@@ -53,10 +73,11 @@ def end_game() -> None:
     text_y = (screen_height // 2 - text.get_height()) // 2
     screen.blit(text, (text_x, text_y))
 
+    # Create a restart button
     restart_btn_group = pygame.sprite.Group()
     restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
     restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
-    restart_btn.rect.y = screen_height // 2 + (screen_height // 2 - restart_btn.rect.height) // 2
+    restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
     restart_btn_group.add(restart_btn)
 
     restart_btn_group.draw(screen)
@@ -72,8 +93,6 @@ def end_game() -> None:
                     return
 
         pygame.display.flip()
-
-    running = False
 
 
 def generate_road_part() -> None:
