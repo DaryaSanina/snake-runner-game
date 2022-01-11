@@ -7,8 +7,15 @@ from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_im
 
 
 def restart_game() -> None:
-    global snake_group, snake, full_turned_snake_image, full_snake_image, snake_tail,\
-        snake_head_point, road_parts, road_connections, clock, frames
+    global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames
+
+    # Create a pause button
+    pause_btn_group = pygame.sprite.Group()
+    pause_btn = Button(load_image('textures\\buttons\\pause_btn.png'))
+    pause_btn.rect.x = screen_width - pause_btn.rect.width - 10
+    pause_btn.rect.y = 10
+    pause_btn_group.add(pause_btn)
 
     snake_group = pygame.sprite.Group()
 
@@ -38,6 +45,61 @@ def restart_game() -> None:
     frames = 0
 
 
+def pause():
+    global running, clock
+
+    # Delete the pause button
+    pause_btn.kill()
+    pygame.draw.rect(screen, grass_color, pause_btn.rect)
+
+    # Fill the screen with an RGBA color (red = 0, green = 162, blue = 255, alpha = 150)
+    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    surface.fill(pause_color)
+    screen.blit(surface, (0, 0))
+
+    pause_screen_buttons = pygame.sprite.Group()
+
+    # Create a restart button
+    restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
+    restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
+    restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
+    pause_screen_buttons.add(restart_btn)
+
+    # Create a resume button
+    resume_btn = Button(load_image('textures\\buttons\\start_btn.png'))
+    resume_btn.rect.x = (screen_width - resume_btn.rect.width) // 2
+    resume_btn.rect.y = restart_btn.rect.y - 50 - resume_btn.rect.height
+    pause_screen_buttons.add(resume_btn)
+
+    # Write "Pause" on the screen
+    font = pygame.font.SysFont('comicsansms', 100)
+    text = font.render("PAUSE", True, (255, 255, 255))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (resume_btn.rect.x // 2 - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+    pause_screen_buttons.draw(screen)
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                if resume_btn.rect.collidepoint(mouse_x, mouse_y):
+                    clock = pygame.time.Clock()  # Restart the clock
+                    pause_btn_group.add(pause_btn)
+                    return
+
+                if restart_btn.rect.collidepoint(mouse_x, mouse_y):
+                    restart_game()
+                    return
+
+        pygame.display.flip()
+
+
 def end_game() -> None:
     global running
 
@@ -47,13 +109,17 @@ def end_game() -> None:
 
     snake.image = load_image('textures\\snake\\snakeSlime_dead.png')
 
+    if snake.direction == 'up':
+        snake.image = crop_image(snake.image, 0, 0, snake.rect.width, snake.rect.height)
+
     if snake.direction == 'left':
         snake.image = pygame.transform.rotate(snake.image, 90)
+        snake.image = crop_image(snake.image, 0, 0, snake.rect.width, snake.rect.height)
 
     if snake.direction == 'right':
         snake.image = pygame.transform.rotate(snake.image, -90)
-
-    snake.image = crop_image(snake.image, 0, 0, snake.rect.width, snake.rect.height)
+        snake.image = crop_image(snake.image, snake.image.get_width() - snake.rect.width, 0,
+                                 snake.image.get_width(), snake.image.get_height())
 
     snake.rect = snake.image.get_rect()
     snake.rect.x = snake_x
@@ -61,9 +127,13 @@ def end_game() -> None:
 
     snake_group.draw(screen)
 
+    # Delete the pause button
+    pause_btn.kill()
+    pygame.draw.rect(screen, grass_color, pause_btn.rect)
+
     # Fill the screen with red color (alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    surface.fill((255, 0, 0, 150))
+    surface.fill(game_over_color)
     screen.blit(surface, (0, 0))
 
     # Write "Game over" on the screen
@@ -120,7 +190,7 @@ def move_road(distance: int) -> None:
     # If the road part sprite is under the bottom edge of the window, delete it
     if road_parts.sprites()[-1].rect.y >= screen_height:
         last_sprite = road_parts.sprites()[-1]
-        road_parts.remove(last_sprite)
+        last_sprite.kill()
 
     cur_x = 0
     prev_x = 0
@@ -203,7 +273,13 @@ if __name__ == '__main__':
 
     pygame.display.set_caption("Snake Runner")
 
-    fps = 60
+    # Create a pause button
+    pause_btn_group = pygame.sprite.Group()
+    pause_btn = Button(load_image('textures\\buttons\\pause_btn.png'))
+    pause_btn.rect.x = screen_width - pause_btn.rect.width - 10
+    pause_btn.rect.y = 10
+    pause_btn_group.add(pause_btn)
+
     road_part_side = int(screen_width // 5)
 
     snake_group = pygame.sprite.Group()
@@ -229,11 +305,14 @@ if __name__ == '__main__':
     road_connections = list()
 
     grass_color = pygame.Color('#348C31')
+    game_over_color = pygame.Color((255, 0, 0, 128))
+    pause_color = pygame.Color((0, 162, 255, 150))
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
 
     frames = 0
+    fps = 60
 
     running = True
     while running:
@@ -241,6 +320,12 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if pause_btn.rect.collidepoint(mouse_x, mouse_y):
+                    pause()
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT and snake.direction == 'up':
                     # The user has pressed the left arrow on the keyboard:
@@ -258,7 +343,7 @@ if __name__ == '__main__':
                     snake_tail.direction = SNAKE_DIRECTIONS[1]  # SNAKE_DIRECTIONS[1] = "left"
 
                     # Add the snake's tail
-                    snake_group.remove(snake)
+                    snake.kill()
                     snake_group.add(snake_tail)
                     snake_group.add(snake)
 
@@ -278,7 +363,7 @@ if __name__ == '__main__':
                     snake_tail.direction = SNAKE_DIRECTIONS[2]  # SNAKE_DIRECTIONS[2] = "right"
 
                     # Add the snake's tail
-                    snake_group.remove(snake)
+                    snake.kill()
                     snake_group.add(snake_tail)
                     snake_group.add(snake)
 
@@ -293,7 +378,7 @@ if __name__ == '__main__':
                                             snake_width=snake.rect.width)
 
                     # Add the snake's tail
-                    snake_group.remove(snake)
+                    snake.kill()
                     snake_group.add(snake_tail)
                     snake_group.add(snake)
 
@@ -338,9 +423,10 @@ if __name__ == '__main__':
                     snake.rect.y = screen_height * 3 // 4
 
             # If the snake is fully turned forward:
-            if snake_tail.rect.height == snake_tail.rect.width or snake_tail.rect.y >= screen_height:
+            if snake_tail.rect.height == snake_tail.rect.width \
+                    or snake_tail.rect.y >= screen_height:
                 snake_tail.direction = SNAKE_DIRECTIONS[0]  # SNAKE_DIRECTIONS[0] = "up"
-                snake_group.remove(snake_tail)
+                snake_tail.kill()
 
             elif full_turned_snake_image is not None:
                 # Move the snake's tail
@@ -367,7 +453,8 @@ if __name__ == '__main__':
                             full_turned_snake_image = pygame.transform.rotate(
                                 load_image('textures\\snake\\snakeSlime.png'), -90)
                             snake_tail.image = crop_image(full_turned_snake_image,
-                                                          0, 0, snake_tail_length, snake_tail_width)
+                                                          0, 0, snake_tail_length,
+                                                          snake_tail_width)
                     if snake.animation_frame == 1:
                         if snake_tail.direction == 'left':
                             full_turned_snake_image = pygame.transform.rotate(
@@ -382,7 +469,8 @@ if __name__ == '__main__':
                             full_turned_snake_image = pygame.transform.rotate(
                                 load_image('textures\\snake\\snakeSlime_ani.png'), -90)
                             snake_tail.image = crop_image(full_turned_snake_image,
-                                                          0, 0, snake_tail_length, snake_tail_width)
+                                                          0, 0, snake_tail_length,
+                                                          snake_tail_width)
 
                     snake_tail.rect = snake_tail.image.get_rect()
                     snake_tail.rect.x = x
@@ -406,7 +494,7 @@ if __name__ == '__main__':
             if snake_tail.rect.height > snake_tail.rect.width:
                 snake_tail.move_left_or_right(full_snake_image, distance=snake_moving_distance)
             else:
-                snake_group.remove(snake_tail)
+                snake_tail.kill()
 
             # Move the snake
             snake.move_left(full_turned_snake_image,
@@ -481,7 +569,7 @@ if __name__ == '__main__':
             if snake_tail.rect.height > snake_tail.rect.width:
                 snake_tail.move_left_or_right(full_snake_image, distance=snake_moving_distance)
             else:
-                snake_group.remove(snake_tail)
+                snake_tail.kill()
 
             # Move the snake
             snake.move_right(full_turned_snake_image,
@@ -546,10 +634,9 @@ if __name__ == '__main__':
                     snake_tail.rect.x = snake_tail_x
                     snake_tail.rect.y = snake_tail_y
 
-        # Move the snake's head point
-        snake_head_point.update(snake)
-
-        snake_group.draw(screen)
+        snake_head_point.update(snake)  # Move the snake's head point
+        snake_group.draw(screen)  # Draw the snake
+        pause_btn_group.draw(screen)  # Draw the pause button
 
         # If the snake is not on the road, exit the program
         if not pygame.sprite.spritecollideany(snake_head_point, road_parts) \
