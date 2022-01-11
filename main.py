@@ -6,46 +6,37 @@ from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_im
                      SNAKE_DIRECTIONS)
 
 
-def restart_game() -> None:
-    global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
-        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames
+def start_game():
+    global running
 
-    # Create a pause button
-    pause_btn_group = pygame.sprite.Group()
-    pause_btn = Button(load_image('textures\\buttons\\pause_btn.png'))
-    pause_btn.rect.x = screen_width - pause_btn.rect.width - 10
-    pause_btn.rect.y = 10
-    pause_btn_group.add(pause_btn)
+    screen.fill(start_screen_color)  # Fill the screen with green color
 
-    snake_group = pygame.sprite.Group()
+    # Create a start button
+    play_btn_group = pygame.sprite.Group()
+    play_btn = Button(load_image('textures\\buttons\\start_btn.png'))
+    play_btn.image = pygame.transform.scale(play_btn.image, (200, 200))
+    play_btn.rect = play_btn.image.get_rect()
+    play_btn.rect.x = (screen_width - play_btn.rect.width) // 2
+    play_btn.rect.y = (screen_height - play_btn.rect.height) // 2
+    play_btn_group.add(play_btn)
 
-    snake = Snake(velocity=50)
-    snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
-    snake.rect.y = screen_height * 3 // 4
+    play_btn_group.draw(screen)
 
-    full_turned_snake_image = None
-    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+    while running:
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.WINDOWCLOSE:
+                    running = False
 
-    snake_tail = SnakeTail()
-    snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
-    snake_tail.rect.y = screen_height * 3 // 4
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
 
-    snake_head_point = SnakeHeadPoint()
-    snake_head_point.rect.x = snake.rect.x + snake.rect.width // 2
-    snake_head_point.rect.y = snake.rect.y
-
-    snake_group.add(snake)
-
-    road_parts = pygame.sprite.Group()
-    road_connections = list()
-
-    # Create clock to move the road more smoothly
-    clock = pygame.time.Clock()
-
-    frames = 0
+                    if play_btn.rect.collidepoint(mouse_x, mouse_y):
+                        return
+            pygame.display.flip()
 
 
-def pause():
+def pause_game() -> None:
     global running, clock
 
     # Delete the pause button
@@ -54,7 +45,7 @@ def pause():
 
     # Fill the screen with an RGBA color (red = 0, green = 162, blue = 255, alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    surface.fill(pause_color)
+    surface.fill(pause_screen_color)
     screen.blit(surface, (0, 0))
 
     pause_screen_buttons = pygame.sprite.Group()
@@ -100,6 +91,45 @@ def pause():
         pygame.display.flip()
 
 
+def restart_game() -> None:
+    global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames
+
+    # Create a pause button
+    pause_btn_group = pygame.sprite.Group()
+    pause_btn = Button(load_image('textures\\buttons\\pause_btn.png'))
+    pause_btn.rect.x = screen_width - pause_btn.rect.width - 10
+    pause_btn.rect.y = 10
+    pause_btn_group.add(pause_btn)
+
+    snake_group = pygame.sprite.Group()
+
+    snake = Snake(velocity=50)
+    snake.rect.x = 2 * road_part_side + (road_part_side - snake.rect.width) // 2
+    snake.rect.y = screen_height * 3 // 4
+
+    full_turned_snake_image = None
+    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+
+    snake_tail = SnakeTail()
+    snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
+    snake_tail.rect.y = screen_height * 3 // 4
+
+    snake_head_point = SnakeHeadPoint()
+    snake_head_point.rect.x = snake.rect.x + snake.rect.width // 2
+    snake_head_point.rect.y = snake.rect.y
+
+    snake_group.add(snake)
+
+    road_parts = pygame.sprite.Group()
+    road_connections = list()
+
+    # Create clock to move the road more smoothly
+    clock = pygame.time.Clock()
+
+    frames = 0
+
+
 def end_game() -> None:
     global running
 
@@ -133,7 +163,7 @@ def end_game() -> None:
 
     # Fill the screen with red color (alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    surface.fill(game_over_color)
+    surface.fill(game_over_screen_color)
     screen.blit(surface, (0, 0))
 
     # Write "Game over" on the screen
@@ -305,8 +335,9 @@ if __name__ == '__main__':
     road_connections = list()
 
     grass_color = pygame.Color('#348C31')
-    game_over_color = pygame.Color((255, 0, 0, 128))
-    pause_color = pygame.Color((0, 162, 255, 150))
+    start_screen_color = pygame.Color('#348C31')
+    pause_screen_color = pygame.Color(0, 162, 255, 150)
+    game_over_screen_color = pygame.Color(255, 0, 0, 128)
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -315,6 +346,7 @@ if __name__ == '__main__':
     fps = 60
 
     running = True
+    start_game()
     while running:
         tick = clock.tick(fps)
         for event in pygame.event.get():
@@ -324,7 +356,7 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if pause_btn.rect.collidepoint(mouse_x, mouse_y):
-                    pause()
+                    pause_game()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT and snake.direction == 'up':
