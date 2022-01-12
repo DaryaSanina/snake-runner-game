@@ -1,12 +1,14 @@
 import pygame
 import pyautogui
 import random
+import sqlite3
+import os
 
 from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_image, crop_image,
                      SNAKE_DIRECTIONS)
 
 
-def start_game():
+def start_game() -> None:
     global running
 
     screen.fill(start_screen_color)  # Fill the screen with green color
@@ -154,6 +156,8 @@ def restart_game() -> None:
 def end_game() -> None:
     global running
 
+    add_score_to_database()
+
     # Change the snake's image to a dead snake
     snake_x = snake.rect.x
     snake_y = snake.rect.y
@@ -226,6 +230,17 @@ def end_game() -> None:
                     return
 
         pygame.display.flip()
+
+
+def add_score_to_database() -> None:
+    global score
+
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\score.db'))
+    cur = con.cursor()
+    con.commit()
+
+    cur.execute('INSERT INTO score VALUES (?)', (score,))
+    con.commit()
 
 
 def generate_road_part() -> None:
