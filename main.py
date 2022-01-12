@@ -29,6 +29,15 @@ def start_game() -> None:
     text_y = (play_btn.rect.x - text.get_height()) // 2
     screen.blit(text, (text_x, text_y))
 
+    # Display the maximal score
+    font = pygame.font.SysFont('comicsansms', 75)
+    best_score = get_max_score()
+    text = font.render(f"BEST SCORE: {best_score}", True, (255, 255, 0))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = play_btn.rect.x + play_btn.rect.height \
+        + (screen_height - (play_btn.rect.x + play_btn.rect.height) - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
     play_btn_group.draw(screen)
 
     while running:
@@ -237,10 +246,25 @@ def add_score_to_database() -> None:
 
     con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\score.db'))
     cur = con.cursor()
-    con.commit()
 
     cur.execute('INSERT INTO score VALUES (?)', (score,))
     con.commit()
+
+
+def get_max_score():
+    """
+    :returns current maximal score from the database (int)
+    """
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\score.db'))
+    cur = con.cursor()
+
+    all_scores = cur.execute('SELECT score FROM score').fetchall()
+
+    if len(all_scores) == 0:
+        return 0
+    else:
+        max_score = max(all_scores)
+        return max_score[0]
 
 
 def generate_road_part() -> None:
