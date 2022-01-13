@@ -604,6 +604,14 @@ if __name__ == '__main__':
                     # Update the clock
                     clock = pygame.time.Clock()
 
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                for monster in monster_group.sprites():
+                    if monster.rect.collidepoint(mouse_x, mouse_y):
+                        # If the user click on a monster
+                        monster.attack_monster()
+
         if snake.direction == "up":
             # Generate and move the road
             distance = tick * snake.velocity / 1000

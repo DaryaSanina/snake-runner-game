@@ -251,6 +251,9 @@ class Monster(pygame.sprite.Sprite):
         self.image = random.choice(possible_images)
         self.rect = self.image.get_rect()
 
+    def attack_monster(self):
+        self.kill()
+
 
 class Apple(pygame.sprite.Sprite):
     def __init__(self, *group):
