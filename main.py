@@ -1,15 +1,23 @@
 import pygame
 import pyautogui
 import random
+import sqlite3
+import os
 
 from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_image, crop_image,
                      SNAKE_DIRECTIONS)
 
+GRASS_COLOR = pygame.Color('#348C31')
+START_SCREEN_COLOR = pygame.Color('#348C31')
+PAUSE_SCREEN_COLOR = pygame.Color(0, 162, 255, 150)
+GAME_OVER_SCREEN_COLOR = pygame.Color(255, 0, 0, 128)
+NEW_BEST_SCORE_SCREEN_COLOR = pygame.Color(255, 255, 0, 128)
 
-def start_game():
+
+def start_game() -> None:
     global running
 
-    screen.fill(start_screen_color)  # Fill the screen with green color
+    screen.fill(START_SCREEN_COLOR)  # Fill the screen with green color
 
     # Create a play button
     play_btn_group = pygame.sprite.Group()
@@ -25,6 +33,15 @@ def start_game():
     text = font.render("SNAKE RUNNER", True, (255, 255, 0))
     text_x = (screen_width - text.get_width()) // 2
     text_y = (play_btn.rect.x - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+    # Display the maximal score
+    font = pygame.font.SysFont('comicsansms', 75)
+    best_score = get_max_score()
+    text = font.render(f"BEST SCORE: {best_score}", True, (255, 255, 0))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = play_btn.rect.x + play_btn.rect.height \
+             + (screen_height - (play_btn.rect.x + play_btn.rect.height) - text.get_height()) // 2
     screen.blit(text, (text_x, text_y))
 
     play_btn_group.draw(screen)
@@ -49,11 +66,11 @@ def pause_game() -> None:
 
     # Delete the pause button
     pause_btn.kill()
-    pygame.draw.rect(screen, grass_color, pause_btn.rect)
+    pygame.draw.rect(screen, GRASS_COLOR, pause_btn.rect)
 
     # Fill the screen with an RGBA color (red = 0, green = 162, blue = 255, alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    surface.fill(pause_screen_color)
+    surface.fill(PAUSE_SCREEN_COLOR)
     screen.blit(surface, (0, 0))
 
     pause_screen_buttons = pygame.sprite.Group()
@@ -111,7 +128,8 @@ def pause_game() -> None:
 
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
-        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames, \
+        score
 
     # Create a pause button
     pause_btn_group = pygame.sprite.Group()
@@ -141,6 +159,8 @@ def restart_game() -> None:
 
     road_parts = pygame.sprite.Group()
     road_connections = list()
+
+    score = 0
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -177,32 +197,34 @@ def end_game() -> None:
 
     # Delete the pause button
     pause_btn.kill()
-    pygame.draw.rect(screen, grass_color, pause_btn.rect)
+    pygame.draw.rect(screen, GRASS_COLOR, pause_btn.rect)
 
-    # Fill the screen with red color (alpha = 150)
-    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    surface.fill(game_over_screen_color)
-    screen.blit(surface, (0, 0))
+    if score > get_max_score():
+        end_game_new_best_score()
+    else:
+        end_game_game_over()
 
-    # Write "Game over" on the screen
-    font = pygame.font.SysFont('comicsansms', 100)
-    text = font.render("GAME OVER!", True, (255, 255, 255))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = (screen_height // 2 - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
+    add_score_to_database()
 
     game_over_screen_buttons = pygame.sprite.Group()
+
+    # Display current score
+    font = pygame.font.SysFont('comicsansms', 80)
+    text = font.render(f"SCORE: {score}", True, (255, 255, 255))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = screen_height // 4 + (screen_height // 4 - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
 
     # Create a restart button
     restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
     restart_btn.rect.x = (screen_width - restart_btn.rect.width) // 2
-    restart_btn.rect.y = (screen_height - restart_btn.rect.height) // 2
+    restart_btn.rect.y = screen_height // 2 + (screen_height // 4 - restart_btn.rect.height) // 2
     game_over_screen_buttons.add(restart_btn)
 
     # Create a home button
     home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
     home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
-    home_btn.rect.y = restart_btn.rect.y + restart_btn.rect.height + 50
+    home_btn.rect.y = 3 * screen_height // 4 + (screen_height // 4 - restart_btn.rect.height) // 2
     game_over_screen_buttons.add(home_btn)
 
     game_over_screen_buttons.draw(screen)
@@ -223,6 +245,60 @@ def end_game() -> None:
                     return
 
         pygame.display.flip()
+
+
+def end_game_game_over() -> None:
+    # Fill the screen with red color (alpha = 150)
+    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    surface.fill(GAME_OVER_SCREEN_COLOR)
+    screen.blit(surface, (0, 0))
+
+    # Write "Game over" on the screen
+    font = pygame.font.SysFont('comicsansms', 100)
+    text = font.render("GAME OVER!", True, (255, 255, 255))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (screen_height // 4 - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+
+def end_game_new_best_score() -> None:
+    # Fill the screen with yellow color (alpha = 128)
+    surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    surface.fill(NEW_BEST_SCORE_SCREEN_COLOR)
+    screen.blit(surface, (0, 0))
+
+    # Write "New best score!" on the screen
+    font = pygame.font.SysFont('comicsansms', 80)
+    text = font.render("NEW BEST SCORE!", True, (255, 255, 255))
+    text_x = (screen_width - text.get_width()) // 2
+    text_y = (screen_height // 4 - text.get_height()) // 2
+    screen.blit(text, (text_x, text_y))
+
+
+def add_score_to_database() -> None:
+    global score
+
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\score.db'))
+    cur = con.cursor()
+
+    cur.execute('INSERT INTO score VALUES (?)', (score,))
+    con.commit()
+
+
+def get_max_score():
+    """
+    :returns current maximal score from the database (int)
+    """
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\score.db'))
+    cur = con.cursor()
+
+    all_scores = cur.execute('SELECT score FROM score').fetchall()
+
+    if len(all_scores) == 0:
+        return 0
+    else:
+        max_score = max(all_scores)
+        return max_score[0]
 
 
 def generate_road_part() -> None:
@@ -364,10 +440,7 @@ if __name__ == '__main__':
     road_parts = pygame.sprite.Group()
     road_connections = list()
 
-    grass_color = pygame.Color('#348C31')
-    start_screen_color = pygame.Color('#348C31')
-    pause_screen_color = pygame.Color(0, 162, 255, 150)
-    game_over_screen_color = pygame.Color(255, 0, 0, 128)
+    score = 0
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -450,7 +523,7 @@ if __name__ == '__main__':
         if snake.direction == "up":
             # Generate and move the road
             distance = tick * snake.velocity / 1000
-            screen.fill(grass_color)
+            screen.fill(GRASS_COLOR)
             if not road_parts.sprites() or road_parts.sprites()[-1].rect.y > 0:
                 generate_road_part()
 
@@ -546,7 +619,7 @@ if __name__ == '__main__':
             snake_moving_distance = tick * snake.velocity / 1000
 
             # Draw grass and the road
-            screen.fill(grass_color)
+            screen.fill(GRASS_COLOR)
             move_road(distance=0)
             road_parts.draw(screen)
             for connection in road_connections:
@@ -621,7 +694,7 @@ if __name__ == '__main__':
             snake_moving_distance = tick * snake.velocity / 1000
 
             # Draw grass and the road
-            screen.fill(grass_color)
+            screen.fill(GRASS_COLOR)
             move_road(distance=0)
             road_parts.draw(screen)
             for connection in road_connections:
@@ -700,6 +773,13 @@ if __name__ == '__main__':
         snake_group.draw(screen)  # Draw the snake
         pause_btn_group.draw(screen)  # Draw the pause button
 
+        # Display the score
+        font = pygame.font.SysFont('comicsansms', 90)
+        text = font.render(str(int(score)), True, (255, 255, 255))
+        text_x = 10
+        text_y = 10
+        screen.blit(text, (text_x, text_y))
+
         # If the snake is not on the road, exit the program
         if not pygame.sprite.spritecollideany(snake_head_point, road_parts) \
                 and not any([pygame.sprite.spritecollideany(snake_head_point, connection)
@@ -711,5 +791,6 @@ if __name__ == '__main__':
 
         road_connections = list()
         snake.velocity += 0.1
+        score += 1
 
     pygame.quit()
