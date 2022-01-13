@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import random
 from PIL import Image
 
 SNAKE_DIRECTIONS = ["up", "left", "right"]
@@ -242,8 +243,16 @@ class Monster(pygame.sprite.Sprite):
     def __init__(self, *group):
         super(Monster, self).__init__(*group)
 
-    # TODO
-    pass
+        possible_images = [load_image('textures\\monsters\\alienBeige.png'),
+                           load_image('textures\\monsters\\alienBlue.png'),
+                           load_image('textures\\monsters\\alienGreen.png'),
+                           load_image('textures\\monsters\\alienPink.png'),
+                           load_image('textures\\monsters\\alienYellow.png')]
+        self.image = random.choice(possible_images)
+        self.rect = self.image.get_rect()
+
+    def attack_monster(self):
+        self.kill()
 
 
 class Apple(pygame.sprite.Sprite):
