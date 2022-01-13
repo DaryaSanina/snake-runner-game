@@ -129,7 +129,7 @@ def pause_game() -> None:
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
         full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock,\
-        frames, score, apples
+        frames, score, apple_group
 
     # Create a pause button
     pause_btn_group = pygame.sprite.Group()
@@ -160,7 +160,7 @@ def restart_game() -> None:
     road_parts = pygame.sprite.Group()
     road_connections = list()
 
-    apples = pygame.sprite.Group()
+    apple_group = pygame.sprite.Group()
 
     score = 0
 
@@ -207,6 +207,8 @@ def end_game() -> None:
         end_game_game_over()
 
     add_score_to_database()
+    update_database_apples()
+    print(apples)
 
     game_over_screen_buttons = pygame.sprite.Group()
 
@@ -280,7 +282,7 @@ def end_game_new_best_score() -> None:
 def add_score_to_database() -> None:
     global score
 
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\score.db'))
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
     cur = con.cursor()
 
     cur.execute('INSERT INTO score VALUES (?)', (score,))
@@ -291,7 +293,7 @@ def get_max_score():
     """
     :returns current maximal score from the database (int)
     """
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\score.db'))
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
     cur = con.cursor()
 
     all_scores = cur.execute('SELECT score FROM score').fetchall()
@@ -301,6 +303,21 @@ def get_max_score():
     else:
         max_score = max(all_scores)
         return max_score[0]
+
+
+def update_database_apples():
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    cur = con.cursor()
+
+    cur.execute('UPDATE apples SET apples = (?)', (apples,))
+    con.commit()
+
+
+def get_number_of_apples():
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    cur = con.cursor()
+
+    return cur.execute('SELECT apples FROM apples').fetchall()[0][0]
 
 
 def generate_road_part() -> None:
@@ -416,11 +433,11 @@ def generate_apple():
                                   - apple.rect.width)
     apple.rect.y = (left_road_part.rect.y + apple.rect.height) // 2
 
-    apples.add(apple)
+    apple_group.add(apple)
 
 
 def move_apples():
-    for apple in apples.sprites():
+    for apple in apple_group.sprites():
         apple.rect.y += round(distance)
         if apple.rect.y > screen_height:
             apple.kill()
@@ -468,9 +485,10 @@ if __name__ == '__main__':
     road_parts = pygame.sprite.Group()
     road_connections = list()
 
-    apples = pygame.sprite.Group()
+    apple_group = pygame.sprite.Group()
 
     score = 0
+    apples = get_number_of_apples()
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -570,8 +588,9 @@ if __name__ == '__main__':
             move_apples()
 
             # If the snake touches an apple, this apple disappears
-            for apple in apples.sprites():
+            for apple in apple_group.sprites():
                 if pygame.sprite.collide_mask(snake, apple):
+                    apples += 1
                     apple.kill()
 
             # Snake animation
@@ -813,7 +832,7 @@ if __name__ == '__main__':
 
         snake_head_point.update(snake)  # Move the snake's head point
         snake_group.draw(screen)  # Draw the snake
-        apples.draw(screen)  # Draw apples
+        apple_group.draw(screen)  # Draw apples
         pause_btn_group.draw(screen)  # Draw the pause button
 
         # Display the score
