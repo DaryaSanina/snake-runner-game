@@ -546,7 +546,8 @@ if __name__ == '__main__':
                     pause_game()
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and snake.direction == 'up':
+                if (event.key == pygame.K_LEFT or event.key == pygame.K_a) \
+                        and snake.direction == 'up':
                     # The user has pressed the left arrow on the keyboard:
                     if snake.animation_frame == 0:
                         full_turned_snake_image = pygame.transform.rotate(
@@ -566,7 +567,8 @@ if __name__ == '__main__':
                     snake_group.add(snake_tail)
                     snake_group.add(snake)
 
-                if event.key == pygame.K_RIGHT and snake.direction == 'up':
+                if (event.key == pygame.K_RIGHT or event.key == pygame.K_d) \
+                        and snake.direction == 'up':
                     # The user has pressed the right arrow on the keyboard:
                     if snake.animation_frame == 0:
                         full_turned_snake_image = pygame.transform.rotate(
@@ -586,7 +588,7 @@ if __name__ == '__main__':
                     snake_group.add(snake_tail)
                     snake_group.add(snake)
 
-                if event.key == pygame.K_UP \
+                if (event.key == pygame.K_UP or event.key == pygame.K_w) \
                         and (snake.direction == 'left' or snake.direction == 'right'):
                     # The user has pressed the up arrow on the keyboard
                     # and the snake is turned left or right:
