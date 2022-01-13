@@ -569,6 +569,11 @@ if __name__ == '__main__':
 
             move_apples()
 
+            # If the snake touches an apple, this apple disappears
+            for apple in apples.sprites():
+                if pygame.sprite.collide_mask(snake, apple):
+                    apple.kill()
+
             # Snake animation
             if frames % 10 == 0:
                 snake_x = snake.rect.x
