@@ -4,8 +4,8 @@ import random
 import sqlite3
 import os
 
-from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, load_image, crop_image,
-                     SNAKE_DIRECTIONS)
+from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, Apple,
+                     load_image, crop_image, SNAKE_DIRECTIONS)
 
 GRASS_COLOR = pygame.Color('#348C31')
 START_SCREEN_COLOR = pygame.Color('#348C31')
@@ -128,8 +128,8 @@ def pause_game() -> None:
 
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
-        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, frames, \
-        score
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock,\
+        frames, score, apples
 
     # Create a pause button
     pause_btn_group = pygame.sprite.Group()
@@ -159,6 +159,8 @@ def restart_game() -> None:
 
     road_parts = pygame.sprite.Group()
     road_connections = list()
+
+    apples = pygame.sprite.Group()
 
     score = 0
 
@@ -398,6 +400,32 @@ def move_road(distance: int) -> None:
         prev_x = int(road_part.rect.x)
 
 
+def generate_apple():
+    apple = Apple()
+
+    left_road_part = min(road_connections[-1].sprites(), key=lambda road_part: road_part.rect.x)
+    if road_parts.sprites()[-1].rect.y < left_road_part.rect.y:
+        left_road_part = road_parts.sprites()[-1]
+
+    right_road_part = max(road_connections[-1].sprites(), key=lambda road_part: road_part.rect.x)
+    if road_parts.sprites()[-1].rect.y < right_road_part.rect.y:
+        right_road_part = road_parts.sprites()[-1]
+
+    apple.rect.x = random.randint(left_road_part.rect.x,
+                                  right_road_part.rect.x + right_road_part.rect.width
+                                  - apple.rect.width)
+    apple.rect.y = (left_road_part.rect.y + apple.rect.height) // 2
+
+    apples.add(apple)
+
+
+def move_apples():
+    for apple in apples.sprites():
+        apple.rect.y += round(distance)
+        if apple.rect.y > screen_height:
+            apple.kill()
+
+
 if __name__ == '__main__':
     pygame.init()
 
@@ -439,6 +467,8 @@ if __name__ == '__main__':
 
     road_parts = pygame.sprite.Group()
     road_connections = list()
+
+    apples = pygame.sprite.Group()
 
     score = 0
 
@@ -531,6 +561,13 @@ if __name__ == '__main__':
             road_parts.draw(screen)
             for connection in road_connections:
                 connection.draw(screen)
+
+            # If current score >= 1000, generate or not generate an apple
+            if score >= 1000:
+                if random.randint(0, 100) == 0:
+                    generate_apple()
+
+            move_apples()
 
             # Snake animation
             if frames % 10 == 0:
@@ -771,6 +808,7 @@ if __name__ == '__main__':
 
         snake_head_point.update(snake)  # Move the snake's head point
         snake_group.draw(screen)  # Draw the snake
+        apples.draw(screen)  # Draw apples
         pause_btn_group.draw(screen)  # Draw the pause button
 
         # Display the score
