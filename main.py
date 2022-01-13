@@ -217,7 +217,6 @@ def end_game() -> None:
 
     add_score_to_database()
     update_database_apples()
-    print(apples)
 
     game_over_screen_buttons = pygame.sprite.Group()
 
@@ -896,10 +895,14 @@ if __name__ == '__main__':
         score_text_y = 10
         screen.blit(score_text, (score_text_x, score_text_y))
 
-        # If the snake is not on the road, exit the program
+        # If the snake is not on the road, end the game
         if not pygame.sprite.spritecollideany(snake_head_point, road_parts) \
                 and not any([pygame.sprite.spritecollideany(snake_head_point, connection)
                              for connection in road_connections]):
+            end_game()
+
+        # If the snake touches a monster, end the game
+        if pygame.sprite.spritecollideany(snake, monster_group):
             end_game()
 
         pygame.display.flip()
