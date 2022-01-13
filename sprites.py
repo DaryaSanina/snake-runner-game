@@ -13,6 +13,7 @@ def load_image(name, color_key=None):
         print(f"File '{fullname}' not found")
         sys.exit()
     image = pygame.image.load(fullname)
+    image.set_colorkey(color_key)
     return image
 
 
@@ -249,5 +250,6 @@ class Apple(pygame.sprite.Sprite):
     def __init__(self, *group):
         super(Apple, self).__init__(*group)
 
-    # TODO
-    pass
+        self.image = load_image('textures\\apple\\apple.png')
+        self.image = pygame.transform.scale(self.image, (50, 50))
+        self.rect = self.image.get_rect()
