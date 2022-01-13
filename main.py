@@ -28,23 +28,31 @@ def start_game() -> None:
     play_btn.rect.y = (screen_height - play_btn.rect.height) // 2
     play_btn_group.add(play_btn)
 
+    play_btn_group.draw(screen)
+
     # Write "Snake Runner" on the screen
-    font = pygame.font.SysFont('comicsansms', 90)
-    text = font.render("SNAKE RUNNER", True, (255, 255, 0))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = (play_btn.rect.x - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
+    snake_runner_font = pygame.font.SysFont('comicsansms', 90)
+    snake_runner_text = snake_runner_font.render("SNAKE RUNNER", True, (255, 255, 0))
+    snake_runner_text_x = (screen_width - snake_runner_text.get_width()) // 2
+    snake_runner_text_y = (play_btn.rect.x - snake_runner_text.get_height()) // 2
+    screen.blit(snake_runner_text, (snake_runner_text_x, snake_runner_text_y))
 
     # Display the maximal score
-    font = pygame.font.SysFont('comicsansms', 75)
     best_score = get_max_score()
-    text = font.render(f"BEST SCORE: {best_score}", True, (255, 255, 0))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = play_btn.rect.x + play_btn.rect.height \
-             + (screen_height - (play_btn.rect.x + play_btn.rect.height) - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
+    best_score_font = pygame.font.SysFont('comicsansms', 75)
+    best_score_text = best_score_font.render(f"BEST SCORE: {best_score}", True, (255, 255, 0))
+    best_score_text_x = (screen_width - best_score_text.get_width()) // 2
+    best_score_text_y = play_btn.rect.x + play_btn.rect.height \
+        + (screen_height - (play_btn.rect.x + play_btn.rect.height)
+           - best_score_text.get_height()) // 2
+    screen.blit(best_score_text, (best_score_text_x, best_score_text_y))
 
-    play_btn_group.draw(screen)
+    # Display the number of apples
+    apples_font = pygame.font.SysFont('comicsansms', 75)
+    apples_text = apples_font.render(f"APPLES: {apples}", True, (255, 255, 0))
+    apples_text_x = (screen_width - apples_text.get_width()) // 2
+    apples_text_y = best_score_text_y + best_score_text.get_height() + 25
+    screen.blit(apples_text, (apples_text_x, apples_text_y))
 
     while running:
         while running:
@@ -94,11 +102,11 @@ def pause_game() -> None:
     pause_screen_buttons.add(home_btn)
 
     # Write "Pause" on the screen
-    font = pygame.font.SysFont('comicsansms', 100)
-    text = font.render("PAUSE", True, (255, 255, 255))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = (resume_btn.rect.x - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
+    pause_font = pygame.font.SysFont('comicsansms', 100)
+    pause_text = pause_font.render("PAUSE", True, (255, 255, 255))
+    pause_text_x = (screen_width - pause_text.get_width()) // 2
+    pause_text_y = (resume_btn.rect.x - pause_text.get_height()) // 2
+    screen.blit(pause_text, (pause_text_x, pause_text_y))
 
     pause_screen_buttons.draw(screen)
 
@@ -213,11 +221,11 @@ def end_game() -> None:
     game_over_screen_buttons = pygame.sprite.Group()
 
     # Display current score
-    font = pygame.font.SysFont('comicsansms', 80)
-    text = font.render(f"SCORE: {score}", True, (255, 255, 255))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = screen_height // 4 + (screen_height // 4 - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
+    cur_score_font = pygame.font.SysFont('comicsansms', 80)
+    cur_score_text = cur_score_font.render(f"SCORE: {score}", True, (255, 255, 255))
+    cur_score_text_x = (screen_width - cur_score_text.get_width()) // 2
+    cur_score_text_y = screen_height // 4 + (screen_height // 4 - cur_score_text.get_height()) // 2
+    screen.blit(cur_score_text, (cur_score_text_x, cur_score_text_y))
 
     # Create a restart button
     restart_btn = Button(load_image('textures\\buttons\\restart_btn.png'))
@@ -258,11 +266,11 @@ def end_game_game_over() -> None:
     screen.blit(surface, (0, 0))
 
     # Write "Game over" on the screen
-    font = pygame.font.SysFont('comicsansms', 100)
-    text = font.render("GAME OVER!", True, (255, 255, 255))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = (screen_height // 4 - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
+    game_over_font = pygame.font.SysFont('comicsansms', 100)
+    game_over_text = game_over_font.render("GAME OVER!", True, (255, 255, 255))
+    game_over_text_x = (screen_width - game_over_text.get_width()) // 2
+    game_over_text_y = (screen_height // 4 - game_over_text.get_height()) // 2
+    screen.blit(game_over_text, (game_over_text_x, game_over_text_y))
 
 
 def end_game_new_best_score() -> None:
@@ -272,11 +280,11 @@ def end_game_new_best_score() -> None:
     screen.blit(surface, (0, 0))
 
     # Write "New best score!" on the screen
-    font = pygame.font.SysFont('comicsansms', 80)
-    text = font.render("NEW BEST SCORE!", True, (255, 255, 255))
-    text_x = (screen_width - text.get_width()) // 2
-    text_y = (screen_height // 4 - text.get_height()) // 2
-    screen.blit(text, (text_x, text_y))
+    new_best_score_font = pygame.font.SysFont('comicsansms', 80)
+    new_best_score_text = new_best_score_font.render("NEW BEST SCORE!", True, (255, 255, 255))
+    new_best_score_text_x = (screen_width - new_best_score_text.get_width()) // 2
+    new_best_score_text_y = (screen_height // 4 - new_best_score_text.get_height()) // 2
+    screen.blit(new_best_score_text, (new_best_score_text_x, new_best_score_text_y))
 
 
 def add_score_to_database() -> None:
@@ -836,11 +844,11 @@ if __name__ == '__main__':
         pause_btn_group.draw(screen)  # Draw the pause button
 
         # Display the score
-        font = pygame.font.SysFont('comicsansms', 90)
-        text = font.render(str(int(score)), True, (255, 255, 255))
-        text_x = 10
-        text_y = 10
-        screen.blit(text, (text_x, text_y))
+        score_font = pygame.font.SysFont('comicsansms', 90)
+        score_text = score_font.render(str(int(score)), True, (255, 255, 255))
+        score_text_x = 10
+        score_text_y = 10
+        screen.blit(score_text, (score_text_x, score_text_y))
 
         # If the snake is not on the road, exit the program
         if not pygame.sprite.spritecollideany(snake_head_point, road_parts) \
