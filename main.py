@@ -22,8 +22,7 @@ def start_game() -> None:
 
     start_screen_btn_group = pygame.sprite.Group()
     # Create a play button
-    play_btn = Button(load_image('textures\\buttons\\start_btn.png'))
-    play_btn.image = pygame.transform.scale(play_btn.image, (200, 200))
+    play_btn = Button(load_image('textures\\buttons\\start_btn.png'), size=(200, 200))
     play_btn.rect = play_btn.image.get_rect()
     play_btn.rect.x = (screen_width - play_btn.rect.width) // 2
     play_btn.rect.y = (screen_height - play_btn.rect.height) // 2
@@ -83,8 +82,69 @@ def start_game() -> None:
 
 
 def switch_to_shop_choosing_screen() -> None:
-    # Fill the screen with SHOP_SCREEN_COLOR
     global running
+
+    # Fill the screen with SHOP_SCREEN_COLOR
+    screen.fill(SHOP_SCREEN_COLOR)
+
+    shop_choosing_screen_btn_group = pygame.sprite.Group()
+    # Create a skin shop button
+    skin_shop_btn = Button(load_image('textures\\buttons\\skin_shop_btn.png'), size=(300, 600))
+    skin_shop_btn.rect = skin_shop_btn.image.get_rect()
+    skin_shop_btn.rect.x = (screen_width // 2 - skin_shop_btn.rect.width) // 2
+    skin_shop_btn.rect.y = (screen_height - skin_shop_btn.rect.height) // 2
+    shop_choosing_screen_btn_group.add(skin_shop_btn)
+
+    # Create a home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
+        + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
+           - home_btn.rect.height) // 2
+    shop_choosing_screen_btn_group.add(home_btn)
+
+    shop_choosing_screen_btn_group.draw(screen)
+
+    # Write "Choose shop" on the screen
+    choose_shop_font = pygame.font.SysFont('comicsansms', 90)
+    choose_shop_text = choose_shop_font.render("CHOOSE SHOP", True, (255, 255, 255))
+    choose_shop_text_x = (screen_width - choose_shop_text.get_width()) // 2
+    choose_shop_text_y = (skin_shop_btn.rect.y - choose_shop_text.get_height()) // 2
+    screen.blit(choose_shop_text, (choose_shop_text_x, choose_shop_text_y))
+
+    # Write "Skins" on the screen
+    skins_font = pygame.font.SysFont('comicsansms', 75)
+    skins_text = skins_font.render("SKINS", True, (255, 255, 255))
+    skins_text_x = skin_shop_btn.rect.x + (skin_shop_btn.rect.width - skins_text.get_width()) // 2
+    skins_text_y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
+        + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
+           - home_btn.rect.height) // 2
+    screen.blit(skins_text, (skins_text_x, skins_text_y))
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                if skin_shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    switch_to_skin_shop()
+                    return
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
+                    return
+
+        pygame.display.flip()
+
+
+def switch_to_skin_shop() -> None:
+    global running
+
+    # Fill the screen with SHOP_SCREEN_COLOR
     screen.fill(SHOP_SCREEN_COLOR)
 
     while running:

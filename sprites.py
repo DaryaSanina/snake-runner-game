@@ -29,10 +29,10 @@ def crop_image(image, left, top, right, bottom):
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, image: pygame.Surface, *group):
+    def __init__(self, image: pygame.Surface, *group, size=(BUTTON_DIAMETER, BUTTON_DIAMETER)):
         super(Button, self).__init__(*group)
         self.image = image
-        self.image = pygame.transform.scale(self.image, (BUTTON_DIAMETER, BUTTON_DIAMETER))
+        self.image = pygame.transform.scale(self.image, size)
         self.rect = self.image.get_rect()
 
 
