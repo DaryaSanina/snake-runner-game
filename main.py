@@ -5,7 +5,7 @@ import sqlite3
 import os
 
 from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, Apple, Monster,
-                     load_image, crop_image, SNAKE_DIRECTIONS)
+                     InsufficientApplesWindow, load_image, crop_image, SNAKE_DIRECTIONS)
 
 GRASS_COLOR = pygame.Color('#348C31')
 START_SCREEN_COLOR = pygame.Color('#348C31')
@@ -14,6 +14,9 @@ GAME_OVER_SCREEN_COLOR = pygame.Color(255, 0, 0, 128)
 NEW_BEST_SCORE_SCREEN_COLOR = pygame.Color(255, 255, 0, 128)
 SHOP_SCREEN_COLOR = pygame.Color("#E5CA77")
 
+SKIN_PRICES = {"lava": 25}
+
+cur_skin = "slime"
 path_to_snake_skin = 'textures\\snake\\snakeSlime.png'
 path_to_animated_snake_skin = 'textures\\snake\\snakeSlime_ani.png'
 path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
@@ -82,125 +85,6 @@ def start_game() -> None:
                 if shop_btn.rect.collidepoint(mouse_x, mouse_y):
                     switch_to_shop_choosing_screen()
                     return
-        pygame.display.flip()
-
-
-def switch_to_shop_choosing_screen() -> None:
-    global running
-
-    # Fill the screen with SHOP_SCREEN_COLOR
-    screen.fill(SHOP_SCREEN_COLOR)
-
-    shop_choosing_screen_btn_group = pygame.sprite.Group()
-    # Create a skin shop button
-    skin_shop_btn = Button(load_image('textures\\buttons\\skin_shop_btn.png'), size=(300, 600))
-    skin_shop_btn.rect = skin_shop_btn.image.get_rect()
-    skin_shop_btn.rect.x = (screen_width // 2 - skin_shop_btn.rect.width) // 2
-    skin_shop_btn.rect.y = (screen_height - skin_shop_btn.rect.height) // 2
-    shop_choosing_screen_btn_group.add(skin_shop_btn)
-
-    # Create a home button
-    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
-    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
-    home_btn.rect.y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
-        + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
-           - home_btn.rect.height) // 2
-    shop_choosing_screen_btn_group.add(home_btn)
-
-    shop_choosing_screen_btn_group.draw(screen)
-
-    # Write "Choose shop" on the screen
-    choose_shop_font = pygame.font.SysFont('comicsansms', 90)
-    choose_shop_text = choose_shop_font.render("CHOOSE SHOP", True, (255, 255, 255))
-    choose_shop_text_x = (screen_width - choose_shop_text.get_width()) // 2
-    choose_shop_text_y = (skin_shop_btn.rect.y - choose_shop_text.get_height()) // 2
-    screen.blit(choose_shop_text, (choose_shop_text_x, choose_shop_text_y))
-
-    # Write "Skins" on the screen
-    skins_font = pygame.font.SysFont('comicsansms', 75)
-    skins_text = skins_font.render("SKINS", True, (255, 255, 255))
-    skins_text_x = skin_shop_btn.rect.x + (skin_shop_btn.rect.width - skins_text.get_width()) // 2
-    skins_text_y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
-        + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
-           - home_btn.rect.height) // 2
-    screen.blit(skins_text, (skins_text_x, skins_text_y))
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.WINDOWCLOSE:
-                running = False
-                return
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-
-                if skin_shop_btn.rect.collidepoint(mouse_x, mouse_y):
-                    switch_to_skin_shop()
-                    return
-
-                if home_btn.rect.collidepoint(mouse_x, mouse_y):
-                    start_game()
-                    return
-
-        pygame.display.flip()
-
-
-def switch_to_skin_shop() -> None:
-    global running
-
-    # Fill the screen with SHOP_SCREEN_COLOR
-    screen.fill(SHOP_SCREEN_COLOR)
-
-    skin_shop_buttons = pygame.sprite.Group()
-
-    # Slime skin
-    # Image
-    slime_skin_image = load_image('images\\snakeSlime_skin_btn.png')
-    slime_skin_image = pygame.transform.scale(slime_skin_image, (150, 300))
-    slime_skin_image_x = (screen_width // 3 - slime_skin_image.get_width()) // 2
-    slime_skin_image_y = 50
-    screen.blit(slime_skin_image, (slime_skin_image_x, slime_skin_image_y))
-    # "Buy" button
-    slime_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
-    slime_skin_buy_btn.rect.x = (screen_width // 3 - slime_skin_buy_btn.rect.width) // 2
-    slime_skin_buy_btn.rect.y = slime_skin_image_y + slime_skin_image.get_height() + 10
-    skin_shop_buttons.add(slime_skin_buy_btn)
-
-    # Lava skin
-    # Image
-    lava_skin_image = load_image('images\\snakeLava_skin_btn.png')
-    lava_skin_image = pygame.transform.scale(lava_skin_image, (150, 300))
-    lava_skin_image_x = screen_width // 3 + (screen_width // 3 - lava_skin_image.get_width()) // 2
-    lava_skin_image_y = 50
-    screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
-    # "Buy" button
-    lava_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
-    lava_skin_buy_btn.rect.x = screen_width // 3 \
-        + (screen_width // 3 - lava_skin_buy_btn.rect.width) // 2
-    lava_skin_buy_btn.rect.y = lava_skin_image_y + lava_skin_image.get_height() + 10
-    skin_shop_buttons.add(lava_skin_buy_btn)
-
-    # Home button
-    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
-    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
-    home_btn.rect.y = screen_height - home_btn.rect.height - 50
-    skin_shop_buttons.add(home_btn)
-
-    skin_shop_buttons.draw(screen)
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.WINDOWCLOSE:
-                running = False
-                return
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-
-                if home_btn.rect.collidepoint(mouse_x, mouse_y):
-                    start_game()
-                    return
-
         pygame.display.flip()
 
 
@@ -422,9 +306,187 @@ def end_game_new_best_score() -> None:
     screen.blit(new_best_score_text, (new_best_score_text_x, new_best_score_text_y))
 
 
-def add_score_to_database() -> None:
-    global score
+def switch_to_shop_choosing_screen() -> None:
+    global running
 
+    # Fill the screen with SHOP_SCREEN_COLOR
+    screen.fill(SHOP_SCREEN_COLOR)
+
+    shop_choosing_screen_btn_group = pygame.sprite.Group()
+    # Create a skin shop button
+    skin_shop_btn = Button(load_image('textures\\buttons\\skin_shop_btn.png'), size=(300, 600))
+    skin_shop_btn.rect = skin_shop_btn.image.get_rect()
+    skin_shop_btn.rect.x = (screen_width // 2 - skin_shop_btn.rect.width) // 2
+    skin_shop_btn.rect.y = (screen_height - skin_shop_btn.rect.height) // 2
+    shop_choosing_screen_btn_group.add(skin_shop_btn)
+
+    # Create a home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
+        + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
+           - home_btn.rect.height) // 2
+    shop_choosing_screen_btn_group.add(home_btn)
+
+    shop_choosing_screen_btn_group.draw(screen)
+
+    # Write "Choose shop" on the screen
+    choose_shop_font = pygame.font.SysFont('comicsansms', 90)
+    choose_shop_text = choose_shop_font.render("CHOOSE SHOP", True, (255, 255, 255))
+    choose_shop_text_x = (screen_width - choose_shop_text.get_width()) // 2
+    choose_shop_text_y = (skin_shop_btn.rect.y - choose_shop_text.get_height()) // 2
+    screen.blit(choose_shop_text, (choose_shop_text_x, choose_shop_text_y))
+
+    # Write "Skins" on the screen
+    skins_font = pygame.font.SysFont('comicsansms', 75)
+    skins_text = skins_font.render("SKINS", True, (255, 255, 255))
+    skins_text_x = skin_shop_btn.rect.x + (skin_shop_btn.rect.width - skins_text.get_width()) // 2
+    skins_text_y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
+        + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
+           - home_btn.rect.height) // 2
+    screen.blit(skins_text, (skins_text_x, skins_text_y))
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                if skin_shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    switch_to_skin_shop()
+                    return
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
+                    return
+
+        pygame.display.flip()
+
+
+def switch_to_skin_shop() -> None:
+    global running, cur_skin, path_to_snake_skin, path_to_animated_snake_skin,\
+        path_to_dead_snake_skin, apples
+
+    # Fill the screen with SHOP_SCREEN_COLOR
+    screen.fill(SHOP_SCREEN_COLOR)
+
+    skin_shop_elements = pygame.sprite.Group()
+
+    insufficient_apples_window = InsufficientApplesWindow()
+    insufficient_apples_window.rect.x = (screen_width - insufficient_apples_window.rect.width) // 2
+    insufficient_apples_window.rect.y = (screen_height - insufficient_apples_window.rect.height) // 2
+
+    # Slime skin
+    # Image
+    slime_skin_image = load_image('images\\snakeSlime_skin_btn.png')
+    slime_skin_image = pygame.transform.scale(slime_skin_image, (150, 300))
+    slime_skin_image_x = (screen_width // 3 - slime_skin_image.get_width()) // 2
+    slime_skin_image_y = 50
+    screen.blit(slime_skin_image, (slime_skin_image_x, slime_skin_image_y))
+    # "Buy" button
+    if "slime" not in available_skins:
+        slime_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    elif cur_skin == "slime":
+        slime_skin_buy_btn = Button(load_image('textures\\buttons\\selected_inactive_btn.png'),
+                                    size=(150, 75))
+    else:
+        slime_skin_buy_btn = Button(load_image('textures\\buttons\\select_btn.png'), size=(150, 75))
+    slime_skin_buy_btn.rect.x = (screen_width // 3 - slime_skin_buy_btn.rect.width) // 2
+    slime_skin_buy_btn.rect.y = slime_skin_image_y + slime_skin_image.get_height() + 10
+    skin_shop_elements.add(slime_skin_buy_btn)
+
+    # Lava skin
+    # Image
+    lava_skin_image = load_image('images\\snakeLava_skin_btn.png')
+    lava_skin_image = pygame.transform.scale(lava_skin_image, (150, 300))
+    lava_skin_image_x = screen_width // 3 + (screen_width // 3 - lava_skin_image.get_width()) // 2
+    lava_skin_image_y = 50
+    screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
+    # "Buy" button
+    if "lava" not in available_skins:
+        lava_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    elif cur_skin == "lava":
+        lava_skin_buy_btn = Button(load_image('textures\\buttons\\selected_inactive_btn.png'),
+                                   size=(150, 75))
+    else:
+        lava_skin_buy_btn = Button(load_image('textures\\buttons\\select_btn.png'), size=(150, 75))
+    lava_skin_buy_btn.rect.x = screen_width // 3 \
+        + (screen_width // 3 - lava_skin_buy_btn.rect.width) // 2
+    lava_skin_buy_btn.rect.y = lava_skin_image_y + lava_skin_image.get_height() + 10
+    skin_shop_elements.add(lava_skin_buy_btn)
+
+    # Home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = screen_height - home_btn.rect.height - 50
+    skin_shop_elements.add(home_btn)
+
+    skin_shop_elements.draw(screen)
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                skin_shop_elements.remove(insufficient_apples_window)
+
+                if slime_skin_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if cur_skin != "slime":  # The skin is bought and not selected
+                        slime_skin_buy_btn.image = \
+                            load_image('textures\\buttons\\selected_inactive_btn.png')
+                        if "lava" in available_skins:
+                            lava_skin_buy_btn.image = load_image('textures\\buttons\\select_btn.png')
+                    cur_skin = "slime"
+                    path_to_snake_skin = 'textures\\snake\\snakeSlime.png'
+                    path_to_animated_snake_skin = 'textures\\snake\\snakeSlime_ani.png'
+                    path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
+
+                if lava_skin_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    skin_price = 0
+                    if "lava" not in available_skins:  # The skin is not bought yet
+                        skin_price = SKIN_PRICES["lava"]
+                        if skin_price <= apples:
+                            available_skins.append("lava")
+                            add_skin_to_database("lava")
+                            lava_skin_buy_btn.image = load_image('textures\\buttons\\select_btn.png')
+                    elif cur_skin != "lava":  # The skin is bought and not selected
+                        lava_skin_buy_btn.image = \
+                            load_image('textures\\buttons\\selected_inactive_btn.png')
+                        if "slime" in available_skins:
+                            slime_skin_buy_btn.image = \
+                                load_image('textures\\buttons\\select_btn.png')
+                    if skin_price <= apples:
+                        cur_skin = "lava"
+                        path_to_snake_skin = 'textures\\snake\\snakeLava.png'
+                        path_to_animated_snake_skin = 'textures\\snake\\snakeLava_ani.png'
+                        path_to_dead_snake_skin = 'textures\\snake\\snakeLava_dead.png'
+                        apples -= skin_price
+                        update_database_apples()
+                    else:
+                        skin_shop_elements.add(insufficient_apples_window)
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
+                    return
+
+        # Fill the screen with SHOP_SCREEN_COLOR
+        screen.fill(SHOP_SCREEN_COLOR)
+
+        screen.blit(slime_skin_image, (slime_skin_image_x, slime_skin_image_y))
+        screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
+
+        skin_shop_elements.draw(screen)
+        pygame.display.flip()
+
+
+def add_score_to_database() -> None:
     con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
     cur = con.cursor()
 
@@ -461,6 +523,23 @@ def get_number_of_apples() -> int:
     cur = con.cursor()
 
     return cur.execute('SELECT apples FROM apples').fetchall()[0][0]
+
+
+def add_skin_to_database(skin: str) -> None:
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    cur = con.cursor()
+
+    cur.execute('INSERT INTO skins VALUES (?)', (skin,))
+    con.commit()
+
+
+def get_available_skins() -> list:
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    cur = con.cursor()
+
+    skins = cur.execute('SELECT skin FROM skins').fetchall()
+
+    return [skin[0] for skin in skins]
 
 
 def generate_road_part() -> None:
@@ -659,6 +738,7 @@ if __name__ == '__main__':
 
     score = 0
     apples = get_number_of_apples()
+    available_skins = get_available_skins()
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
