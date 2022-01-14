@@ -12,23 +12,33 @@ START_SCREEN_COLOR = pygame.Color('#348C31')
 PAUSE_SCREEN_COLOR = pygame.Color(0, 162, 255, 150)
 GAME_OVER_SCREEN_COLOR = pygame.Color(255, 0, 0, 128)
 NEW_BEST_SCORE_SCREEN_COLOR = pygame.Color(255, 255, 0, 128)
+SHOP_SCREEN_COLOR = pygame.Color("#E5CA77")
 
 
 def start_game() -> None:
     global running
 
-    screen.fill(START_SCREEN_COLOR)  # Fill the screen with green color
+    screen.fill(START_SCREEN_COLOR)  # Fill the screen with START_SCREEN_COLOR
 
+    start_screen_btn_group = pygame.sprite.Group()
     # Create a play button
-    play_btn_group = pygame.sprite.Group()
     play_btn = Button(load_image('textures\\buttons\\start_btn.png'))
     play_btn.image = pygame.transform.scale(play_btn.image, (200, 200))
     play_btn.rect = play_btn.image.get_rect()
     play_btn.rect.x = (screen_width - play_btn.rect.width) // 2
     play_btn.rect.y = (screen_height - play_btn.rect.height) // 2
-    play_btn_group.add(play_btn)
+    start_screen_btn_group.add(play_btn)
 
-    play_btn_group.draw(screen)
+    # Create a shop button
+    shop_btn = Button(load_image('textures\\buttons\\shop_btn.png'))
+    shop_btn.rect = shop_btn.image.get_rect()
+    shop_btn.rect.x = play_btn.rect.x + play_btn.rect.width \
+        + (screen_width - play_btn.rect.x - play_btn.rect.width
+           - shop_btn.rect.width) // 2
+    shop_btn.rect.y = (screen_height - shop_btn.rect.height) // 2
+    start_screen_btn_group.add(shop_btn)
+
+    start_screen_btn_group.draw(screen)
 
     # Write "Snake Runner" on the screen
     snake_runner_font = pygame.font.SysFont('comicsansms', 90)
@@ -55,18 +65,35 @@ def start_game() -> None:
     screen.blit(apples_text, (apples_text_x, apples_text_y))
 
     while running:
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.WINDOWCLOSE:
-                    running = False
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
 
-                    if play_btn.rect.collidepoint(mouse_x, mouse_y):
-                        restart_game()
-                        return
-            pygame.display.flip()
+                if play_btn.rect.collidepoint(mouse_x, mouse_y):
+                    restart_game()
+                    return
+
+                if shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    switch_to_shop_choosing_screen()
+                    return
+        pygame.display.flip()
+
+
+def switch_to_shop_choosing_screen() -> None:
+    # Fill the screen with SHOP_SCREEN_COLOR
+    global running
+    screen.fill(SHOP_SCREEN_COLOR)
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+                return
+
+        pygame.display.flip()
 
 
 def pause_game() -> None:
@@ -297,7 +324,7 @@ def add_score_to_database() -> None:
     con.commit()
 
 
-def get_max_score():
+def get_max_score() -> int:
     """
     :returns current maximal score from the database (int)
     """
@@ -313,7 +340,7 @@ def get_max_score():
         return max_score[0]
 
 
-def update_database_apples():
+def update_database_apples() -> None:
     con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
     cur = con.cursor()
 
@@ -321,7 +348,7 @@ def update_database_apples():
     con.commit()
 
 
-def get_number_of_apples():
+def get_number_of_apples() -> int:
     con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
     cur = con.cursor()
 
@@ -425,7 +452,7 @@ def move_road(distance: int) -> None:
         prev_x = int(road_part.rect.x)
 
 
-def generate_apple():
+def generate_apple() -> None:
     apple = Apple()
 
     left_road_part = min(road_connections[-1].sprites(), key=lambda road_part: road_part.rect.x)
@@ -444,14 +471,14 @@ def generate_apple():
     apple_group.add(apple)
 
 
-def move_apples():
+def move_apples() -> None:
     for apple in apple_group.sprites():
         apple.rect.y += round(distance)
         if apple.rect.y > screen_height:
             apple.kill()
 
 
-def generate_monster():
+def generate_monster() -> None:
     monster = Monster()
 
     left_road_part = min(road_connections[-1].sprites(), key=lambda road_part: road_part.rect.x)
@@ -470,7 +497,7 @@ def generate_monster():
     monster_group.add(monster)
 
 
-def move_monsters():
+def move_monsters() -> None:
     for monster in monster_group.sprites():
         monster.rect.y += round(distance)
         if monster.rect.y > screen_height:
