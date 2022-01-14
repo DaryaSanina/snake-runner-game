@@ -14,6 +14,10 @@ GAME_OVER_SCREEN_COLOR = pygame.Color(255, 0, 0, 128)
 NEW_BEST_SCORE_SCREEN_COLOR = pygame.Color(255, 255, 0, 128)
 SHOP_SCREEN_COLOR = pygame.Color("#E5CA77")
 
+path_to_snake_skin = 'textures\\snake\\snakeSlime.png'
+path_to_animated_snake_skin = 'textures\\snake\\snakeSlime_ani.png'
+path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
+
 
 def start_game() -> None:
     global running
@@ -147,11 +151,55 @@ def switch_to_skin_shop() -> None:
     # Fill the screen with SHOP_SCREEN_COLOR
     screen.fill(SHOP_SCREEN_COLOR)
 
+    skin_shop_buttons = pygame.sprite.Group()
+
+    # Slime skin
+    # Image
+    slime_skin_image = load_image('images\\snakeSlime_skin_btn.png')
+    slime_skin_image = pygame.transform.scale(slime_skin_image, (150, 300))
+    slime_skin_image_x = (screen_width // 3 - slime_skin_image.get_width()) // 2
+    slime_skin_image_y = 50
+    screen.blit(slime_skin_image, (slime_skin_image_x, slime_skin_image_y))
+    # "Buy" button
+    slime_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    slime_skin_buy_btn.rect.x = (screen_width // 3 - slime_skin_buy_btn.rect.width) // 2
+    slime_skin_buy_btn.rect.y = slime_skin_image_y + slime_skin_image.get_height() + 10
+    skin_shop_buttons.add(slime_skin_buy_btn)
+
+    # Lava skin
+    # Image
+    lava_skin_image = load_image('images\\snakeLava_skin_btn.png')
+    lava_skin_image = pygame.transform.scale(lava_skin_image, (150, 300))
+    lava_skin_image_x = screen_width // 3 + (screen_width // 3 - lava_skin_image.get_width()) // 2
+    lava_skin_image_y = 50
+    screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
+    # "Buy" button
+    lava_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    lava_skin_buy_btn.rect.x = screen_width // 3 \
+        + (screen_width // 3 - lava_skin_buy_btn.rect.width) // 2
+    lava_skin_buy_btn.rect.y = lava_skin_image_y + lava_skin_image.get_height() + 10
+    skin_shop_buttons.add(lava_skin_buy_btn)
+
+    # Home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = screen_height - home_btn.rect.height - 50
+    skin_shop_buttons.add(home_btn)
+
+    skin_shop_buttons.draw(screen)
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
                 return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
+                    return
 
         pygame.display.flip()
 
@@ -240,7 +288,7 @@ def restart_game() -> None:
     snake.rect.y = screen_height * 3 // 4
 
     full_turned_snake_image = None
-    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+    full_snake_image = load_image(path_to_snake_skin)
 
     snake_tail = SnakeTail()
     snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
@@ -273,7 +321,7 @@ def end_game() -> None:
     snake_x = snake.rect.x
     snake_y = snake.rect.y
 
-    snake.image = load_image('textures\\snake\\snakeSlime_dead.png')
+    snake.image = load_image(path_to_dead_snake_skin)
 
     if snake.direction == 'up':
         snake.image = crop_image(snake.image, 0, 0, snake.rect.width, snake.rect.height)
@@ -591,7 +639,7 @@ if __name__ == '__main__':
     snake.rect.y = screen_height * 3 // 4
 
     full_turned_snake_image = None
-    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+    full_snake_image = load_image(path_to_snake_skin)
 
     snake_tail = SnakeTail()
     snake_tail.rect.x = 2 * road_part_side + (road_part_side - snake_tail.rect.width) // 2
@@ -637,10 +685,10 @@ if __name__ == '__main__':
                     # The user has pressed the left arrow on the keyboard:
                     if snake.animation_frame == 0:
                         full_turned_snake_image = pygame.transform.rotate(
-                            load_image('textures\\snake\\snakeSlime.png'), 90)
+                            load_image(path_to_snake_skin), 90)
                     else:
                         full_turned_snake_image = pygame.transform.rotate(
-                            load_image('textures\\snake\\snakeSlime_ani.png'), 90)
+                            load_image(path_to_animated_snake_skin), 90)
 
                     snake.turn_left(full_turned_snake_image)
 
@@ -658,10 +706,10 @@ if __name__ == '__main__':
                     # The user has pressed the right arrow on the keyboard:
                     if snake.animation_frame == 0:
                         full_turned_snake_image = pygame.transform.rotate(
-                            load_image('textures\\snake\\snakeSlime.png'), -90)
+                            load_image(path_to_snake_skin), -90)
                     else:
                         full_turned_snake_image = pygame.transform.rotate(
-                            load_image('textures\\snake\\snakeSlime_ani.png'), -90)
+                            load_image(path_to_animated_snake_skin), -90)
 
                     snake.turn_right(full_turned_snake_image)
 
@@ -741,7 +789,7 @@ if __name__ == '__main__':
                 if snake.animation_frame == 0:
                     snake.animation_frame = 1
 
-                    full_snake_image = load_image('textures\\snake\\snakeSlime_ani.png')
+                    full_snake_image = load_image(path_to_animated_snake_skin)
                     snake.image = crop_image(full_snake_image, 0, 0, snake_width, snake_length)
 
                     snake.rect = snake.image.get_rect()
@@ -750,7 +798,7 @@ if __name__ == '__main__':
                 else:
                     snake.animation_frame = 0
 
-                    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+                    full_snake_image = load_image(path_to_snake_skin)
                     snake.image = crop_image(full_snake_image, 0, 0, snake_width, snake_length)
 
                     snake.rect = snake.image.get_rect()
@@ -777,7 +825,7 @@ if __name__ == '__main__':
                     if snake.animation_frame == 0:
                         if snake_tail.direction == 'left':
                             full_turned_snake_image = pygame.transform.rotate(
-                                load_image('textures\\snake\\snakeSlime.png'), 90)
+                                load_image(path_to_snake_skin), 90)
                             full_turned_snake_length = full_turned_snake_image.get_width()
                             snake_tail.image = crop_image(full_turned_snake_image,
                                                           full_turned_snake_length
@@ -786,14 +834,14 @@ if __name__ == '__main__':
                                                           snake_tail_width)
                         if snake_tail.direction == 'right':
                             full_turned_snake_image = pygame.transform.rotate(
-                                load_image('textures\\snake\\snakeSlime.png'), -90)
+                                load_image(path_to_snake_skin), -90)
                             snake_tail.image = crop_image(full_turned_snake_image,
                                                           0, 0, snake_tail_length,
                                                           snake_tail_width)
                     if snake.animation_frame == 1:
                         if snake_tail.direction == 'left':
                             full_turned_snake_image = pygame.transform.rotate(
-                                load_image('textures\\snake\\snakeSlime_ani.png'), 90)
+                                load_image(path_to_animated_snake_skin), 90)
                             full_turned_snake_length = full_turned_snake_image.get_width()
                             snake_tail.image = crop_image(full_turned_snake_image,
                                                           full_turned_snake_length
@@ -802,7 +850,7 @@ if __name__ == '__main__':
                                                           snake_tail_width)
                         if snake_tail.direction == 'right':
                             full_turned_snake_image = pygame.transform.rotate(
-                                load_image('textures\\snake\\snakeSlime_ani.png'), -90)
+                                load_image(path_to_animated_snake_skin), -90)
                             snake_tail.image = crop_image(full_turned_snake_image,
                                                           0, 0, snake_tail_length,
                                                           snake_tail_width)
@@ -851,7 +899,7 @@ if __name__ == '__main__':
 
                     # Change the snake image
                     full_turned_snake_image = pygame.transform.rotate(
-                        load_image('textures\\snake\\snakeSlime_ani.png'), 90)
+                        load_image(path_to_animated_snake_skin), 90)
                     snake.image = crop_image(full_turned_snake_image, 0, 0,
                                              snake_length, snake_width)
 
@@ -860,7 +908,7 @@ if __name__ == '__main__':
                     snake.rect.y = snake_y
 
                     # Change the snake's tail image
-                    full_snake_image = load_image('textures\\snake\\snakeSlime_ani.png')
+                    full_snake_image = load_image(path_to_animated_snake_skin)
                     snake_tail.image = crop_image(full_snake_image,
                                                   0, 0, snake_width, snake_tail_length)
 
@@ -873,7 +921,7 @@ if __name__ == '__main__':
 
                     # Change the snake image
                     full_turned_snake_image = pygame.transform.rotate(
-                        load_image('textures\\snake\\snakeSlime.png'), 90)
+                        load_image(path_to_snake_skin), 90)
                     snake.image = crop_image(full_turned_snake_image, 0, 0,
                                              snake_length, snake_width)
 
@@ -882,7 +930,7 @@ if __name__ == '__main__':
                     snake.rect.y = snake_y
 
                     # Change the snake's tail image
-                    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+                    full_snake_image = load_image(path_to_snake_skin)
                     snake_tail.image = crop_image(full_snake_image,
                                                   0, 0, snake_width, snake_tail_length)
 
@@ -926,7 +974,7 @@ if __name__ == '__main__':
 
                     # Change the snake image
                     full_turned_snake_image = pygame.transform.rotate(
-                        load_image('textures\\snake\\snakeSlime_ani.png'), -90)
+                        load_image(path_to_animated_snake_skin), -90)
                     full_turned_snake_length = full_turned_snake_image.get_width()
                     snake.image = crop_image(full_turned_snake_image,
                                              full_turned_snake_length - snake_length, 0,
@@ -937,7 +985,7 @@ if __name__ == '__main__':
                     snake.rect.y = snake_y
 
                     # Change the snake's tail image
-                    full_snake_image = load_image('textures\\snake\\snakeSlime_ani.png')
+                    full_snake_image = load_image(path_to_animated_snake_skin)
                     snake_tail.image = crop_image(full_snake_image,
                                                   0, 0, snake_width, snake_tail_length)
 
@@ -950,7 +998,7 @@ if __name__ == '__main__':
 
                     # Change the snake image
                     full_turned_snake_image = pygame.transform.rotate(
-                        load_image('textures\\snake\\snakeSlime.png'), -90)
+                        load_image(path_to_snake_skin), -90)
                     full_turned_snake_length = full_turned_snake_image.get_width()
                     snake.image = crop_image(full_turned_snake_image,
                                              full_turned_snake_length - snake_length, 0,
@@ -961,7 +1009,7 @@ if __name__ == '__main__':
                     snake.rect.y = snake_y
 
                     # Change the snake's tail image
-                    full_snake_image = load_image('textures\\snake\\snakeSlime.png')
+                    full_snake_image = load_image(path_to_snake_skin)
                     snake_tail.image = crop_image(full_snake_image,
                                                   0, 0, snake_width, snake_tail_length)
 
