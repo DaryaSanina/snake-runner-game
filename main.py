@@ -15,6 +15,10 @@ NEW_BEST_SCORE_SCREEN_COLOR = pygame.Color(255, 255, 0, 128)
 SHOP_SCREEN_COLOR = pygame.Color("#E5CA77")
 
 SKIN_PRICES = {"lava": 25}
+BOOSTER_PRICES = {"magnet 10 seconds": 10, "magnet 20 seconds": 20, "magnet 30 seconds": 30,
+                  "slow motion 10 seconds": 10, "slow motion 20 seconds": 20,
+                  "slow motion 30 seconds": 30,
+                  "shield 10 seconds": 10, "shield 20 seconds": 20, "shield 30 seconds": 30}
 
 cur_skin = "slime"
 path_to_snake_skin = 'textures\\snake\\snakeSlime.png'
@@ -315,10 +319,16 @@ def switch_to_shop_choosing_screen() -> None:
     shop_choosing_screen_btn_group = pygame.sprite.Group()
     # Create a skin shop button
     skin_shop_btn = Button(load_image('textures\\buttons\\skin_shop_btn.png'), size=(300, 600))
-    skin_shop_btn.rect = skin_shop_btn.image.get_rect()
     skin_shop_btn.rect.x = (screen_width // 2 - skin_shop_btn.rect.width) // 2
     skin_shop_btn.rect.y = (screen_height - skin_shop_btn.rect.height) // 2
     shop_choosing_screen_btn_group.add(skin_shop_btn)
+
+    # Create a booster shop button
+    booster_shop_btn = Button(load_image('textures\\buttons\\booster_shop_btn.png'), size=(300, 600))
+    booster_shop_btn.rect.x = screen_width // 2 \
+        + (screen_width // 2 - booster_shop_btn.rect.width) // 2
+    booster_shop_btn.rect.y = (screen_height - skin_shop_btn.rect.height) // 2
+    shop_choosing_screen_btn_group.add(booster_shop_btn)
 
     # Create a home button
     home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
@@ -338,13 +348,23 @@ def switch_to_shop_choosing_screen() -> None:
     screen.blit(choose_shop_text, (choose_shop_text_x, choose_shop_text_y))
 
     # Write "Skins" on the screen
-    skins_font = pygame.font.SysFont('comicsansms', 75)
+    skins_font = pygame.font.SysFont('comicsansms', 50)
     skins_text = skins_font.render("SKINS", True, (255, 255, 255))
     skins_text_x = skin_shop_btn.rect.x + (skin_shop_btn.rect.width - skins_text.get_width()) // 2
     skins_text_y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
         + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
            - home_btn.rect.height) // 2
     screen.blit(skins_text, (skins_text_x, skins_text_y))
+
+    # Write "Boosters" on the screen
+    boosters_font = pygame.font.SysFont('comicsansms', 50)
+    boosters_text = boosters_font.render("BOOSTERS", True, (255, 255, 255))
+    boosters_text_x = booster_shop_btn.rect.x \
+        + (booster_shop_btn.rect.width - boosters_text.get_width()) // 2
+    boosters_text_y = skin_shop_btn.rect.y + skin_shop_btn.rect.height \
+        + (screen_height - skin_shop_btn.rect.y - skin_shop_btn.rect.height
+           - home_btn.rect.height) // 2
+    screen.blit(boosters_text, (boosters_text_x, boosters_text_y))
 
     while running:
         for event in pygame.event.get():
@@ -357,6 +377,10 @@ def switch_to_shop_choosing_screen() -> None:
 
                 if skin_shop_btn.rect.collidepoint(mouse_x, mouse_y):
                     switch_to_skin_shop()
+                    return
+
+                if booster_shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    switch_to_booster_shop()
                     return
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
@@ -486,6 +510,295 @@ def switch_to_skin_shop() -> None:
         pygame.display.flip()
 
 
+def switch_to_booster_shop() -> None:
+    global running, apples
+
+    # Fill the screen with SHOP_SCREEN_COLOR
+    screen.fill(SHOP_SCREEN_COLOR)
+
+    booster_shop_elements = pygame.sprite.Group()
+
+    insufficient_apples_window = InsufficientApplesWindow()
+    insufficient_apples_window.rect.x = (screen_width - insufficient_apples_window.rect.width) // 2
+    insufficient_apples_window.rect.y = (screen_height - insufficient_apples_window.rect.height) // 2
+
+    # Magnet booster 10 seconds
+    # Image
+    magnet_booster_10s_image = load_image('images\\magnet_booster_10s.png')
+    magnet_booster_10s_image = pygame.transform.scale(magnet_booster_10s_image, (150, 150))
+    magnet_booster_10s_image_x = (screen_width // 3 - magnet_booster_10s_image.get_width()) // 2
+    magnet_booster_10s_image_y = 20
+    screen.blit(magnet_booster_10s_image, (magnet_booster_10s_image_x, magnet_booster_10s_image_y))
+    # "Buy" button
+    magnet_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    magnet_booster_10s_buy_btn.rect.x = \
+        (screen_width // 3 - magnet_booster_10s_buy_btn.rect.width) // 2
+    magnet_booster_10s_buy_btn.rect.y = magnet_booster_10s_image_y \
+        + magnet_booster_10s_image.get_height() + 10
+    booster_shop_elements.add(magnet_booster_10s_buy_btn)
+
+    # Magnet booster 20 seconds
+    # Image
+    magnet_booster_20s_image = load_image('images\\magnet_booster_20s.png')
+    magnet_booster_20s_image = pygame.transform.scale(magnet_booster_20s_image, (150, 150))
+    magnet_booster_20s_image_x = (screen_width // 3 - magnet_booster_20s_image.get_width()) // 2
+    magnet_booster_20s_image_y = 20 + magnet_booster_10s_image.get_height() + 75 + 20
+    screen.blit(magnet_booster_20s_image, (magnet_booster_20s_image_x, magnet_booster_20s_image_y))
+    # "Buy" button
+    magnet_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    magnet_booster_20s_buy_btn.rect.x = \
+        (screen_width // 3 - magnet_booster_20s_buy_btn.rect.width) // 2
+    magnet_booster_20s_buy_btn.rect.y = magnet_booster_20s_image_y \
+        + magnet_booster_20s_image.get_height() + 10
+    booster_shop_elements.add(magnet_booster_20s_buy_btn)
+
+    # Magnet booster 30 seconds
+    # Image
+    magnet_booster_30s_image = load_image('images\\magnet_booster_30s.png')
+    magnet_booster_30s_image = pygame.transform.scale(magnet_booster_30s_image, (150, 150))
+    magnet_booster_30s_image_x = (screen_width // 3 - magnet_booster_30s_image.get_width()) // 2
+    magnet_booster_30s_image_y = magnet_booster_20s_image_y + magnet_booster_20s_image.get_height() \
+        + 75 + 20
+    screen.blit(magnet_booster_30s_image, (magnet_booster_30s_image_x, magnet_booster_30s_image_y))
+    # "Buy" button
+    magnet_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    magnet_booster_30s_buy_btn.rect.x = \
+        (screen_width // 3 - magnet_booster_30s_buy_btn.rect.width) // 2
+    magnet_booster_30s_buy_btn.rect.y = magnet_booster_30s_image_y \
+        + magnet_booster_30s_image.get_height() + 10
+    booster_shop_elements.add(magnet_booster_30s_buy_btn)
+
+    # Slow motion booster 10 seconds
+    # Image
+    slow_motion_booster_10s_image = load_image('images\\slow_motion_booster_10s.png')
+    slow_motion_booster_10s_image = pygame.transform.scale(slow_motion_booster_10s_image, (150, 150))
+    slow_motion_booster_10s_image_x = screen_width // 3 \
+        + (screen_width // 3 - slow_motion_booster_10s_image.get_width()) // 2
+    slow_motion_booster_10s_image_y = 20
+    screen.blit(slow_motion_booster_10s_image,
+                (slow_motion_booster_10s_image_x, slow_motion_booster_10s_image_y))
+    # "Buy" button
+    slow_motion_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
+                                             size=(150, 75))
+    slow_motion_booster_10s_buy_btn.rect.x = \
+        screen_width // 3 + (screen_width // 3 - slow_motion_booster_10s_buy_btn.rect.width) // 2
+    slow_motion_booster_10s_buy_btn.rect.y = slow_motion_booster_10s_image_y \
+        + slow_motion_booster_10s_image.get_height() + 10
+    booster_shop_elements.add(slow_motion_booster_10s_buy_btn)
+
+    # Slow motion booster 20 seconds
+    # Image
+    slow_motion_booster_20s_image = load_image('images\\slow_motion_booster_20s.png')
+    slow_motion_booster_20s_image = pygame.transform.scale(slow_motion_booster_20s_image, (150, 150))
+    slow_motion_booster_20s_image_x = screen_width // 3 \
+        + (screen_width // 3 - slow_motion_booster_20s_image.get_width()) // 2
+    slow_motion_booster_20s_image_y = 20 + slow_motion_booster_10s_image.get_height() + 75 + 20
+    screen.blit(slow_motion_booster_20s_image,
+                (slow_motion_booster_20s_image_x, slow_motion_booster_20s_image_y))
+    # "Buy" button
+    slow_motion_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
+                                             size=(150, 75))
+    slow_motion_booster_20s_buy_btn.rect.x = \
+        screen_width // 3 + (screen_width // 3 - slow_motion_booster_20s_buy_btn.rect.width) // 2
+    slow_motion_booster_20s_buy_btn.rect.y = slow_motion_booster_20s_image_y \
+        + slow_motion_booster_20s_image.get_height() + 10
+    booster_shop_elements.add(slow_motion_booster_20s_buy_btn)
+
+    # Slow motion booster 30 seconds
+    # Image
+    slow_motion_booster_30s_image = load_image('images\\slow_motion_booster_30s.png')
+    slow_motion_booster_30s_image = pygame.transform.scale(slow_motion_booster_30s_image, (150, 150))
+    slow_motion_booster_30s_image_x = screen_width // 3 \
+        + (screen_width // 3 - slow_motion_booster_30s_image.get_width()) // 2
+    slow_motion_booster_30s_image_y = slow_motion_booster_20s_image_y \
+        + slow_motion_booster_20s_image.get_height() + 75 + 20
+    screen.blit(slow_motion_booster_30s_image,
+                (slow_motion_booster_30s_image_x, slow_motion_booster_30s_image_y))
+    # "Buy" button
+    slow_motion_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
+                                             size=(150, 75))
+    slow_motion_booster_30s_buy_btn.rect.x = \
+        screen_width // 3 + (screen_width // 3 - slow_motion_booster_30s_buy_btn.rect.width) // 2
+    slow_motion_booster_30s_buy_btn.rect.y = slow_motion_booster_30s_image_y \
+        + slow_motion_booster_30s_image.get_height() + 10
+    booster_shop_elements.add(slow_motion_booster_30s_buy_btn)
+
+    # Shield booster 10 seconds
+    # Image
+    shield_booster_10s_image = load_image('images\\shield_booster_10s.png')
+    shield_booster_10s_image = pygame.transform.scale(shield_booster_10s_image, (150, 150))
+    shield_booster_10s_image_x = 2 * screen_width // 3 \
+        + (screen_width // 3 - shield_booster_10s_image.get_width()) // 2
+    shield_booster_10s_image_y = 20
+    screen.blit(shield_booster_10s_image, (shield_booster_10s_image_x, shield_booster_10s_image_y))
+    # "Buy" button
+    shield_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    shield_booster_10s_buy_btn.rect.x = \
+        2 * screen_width // 3 + (screen_width // 3 - shield_booster_10s_buy_btn.rect.width) // 2
+    shield_booster_10s_buy_btn.rect.y = shield_booster_10s_image_y \
+        + shield_booster_10s_image.get_height() + 10
+    booster_shop_elements.add(shield_booster_10s_buy_btn)
+
+    # Shield booster 20 seconds
+    # Image
+    shield_booster_20s_image = load_image('images\\shield_booster_20s.png')
+    shield_booster_20s_image = pygame.transform.scale(shield_booster_20s_image, (150, 150))
+    shield_booster_20s_image_x = 2 * screen_width // 3 \
+        + (screen_width // 3 - shield_booster_20s_image.get_width()) // 2
+    shield_booster_20s_image_y = 20 + shield_booster_10s_image.get_height() + 75 + 20
+    screen.blit(shield_booster_20s_image, (shield_booster_20s_image_x, shield_booster_20s_image_y))
+    # "Buy" button
+    shield_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    shield_booster_20s_buy_btn.rect.x = \
+        2 * screen_width // 3 + (screen_width // 3 - shield_booster_20s_buy_btn.rect.width) // 2
+    shield_booster_20s_buy_btn.rect.y = shield_booster_20s_image_y \
+        + shield_booster_20s_image.get_height() + 10
+    booster_shop_elements.add(shield_booster_20s_buy_btn)
+
+    # Shield booster 30 seconds
+    # Image
+    shield_booster_30s_image = load_image('images\\shield_booster_30s.png')
+    shield_booster_30s_image = pygame.transform.scale(shield_booster_30s_image, (150, 150))
+    shield_booster_30s_image_x = 2 * screen_width // 3 \
+        + (screen_width // 3 - shield_booster_30s_image.get_width()) // 2
+    shield_booster_30s_image_y = shield_booster_20s_image_y + shield_booster_20s_image.get_height() \
+        + 75 + 20
+    screen.blit(shield_booster_30s_image, (shield_booster_30s_image_x, shield_booster_30s_image_y))
+    # "Buy" button
+    shield_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
+    shield_booster_30s_buy_btn.rect.x = \
+        2 * screen_width // 3 + (screen_width // 3 - shield_booster_30s_buy_btn.rect.width) // 2
+    shield_booster_30s_buy_btn.rect.y = shield_booster_30s_image_y \
+        + shield_booster_30s_image.get_height() + 10
+    booster_shop_elements.add(shield_booster_30s_buy_btn)
+
+    # Home button
+    home_btn = Button(load_image('textures\\buttons\\home_btn.png'))
+    home_btn.rect.x = (screen_width - home_btn.rect.width) // 2
+    home_btn.rect.y = screen_height - home_btn.rect.height - 10
+    booster_shop_elements.add(home_btn)
+
+    booster_shop_elements.draw(screen)
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.WINDOWCLOSE:
+                running = False
+                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                booster_shop_elements.remove(insufficient_apples_window)
+
+                if magnet_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["magnet 10 seconds"] <= apples:
+                        available_boosters["magnet 10 seconds"] += 1
+                        apples -= BOOSTER_PRICES["magnet 10 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if magnet_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["magnet 20 seconds"] <= apples:
+                        available_boosters["magnet 20 seconds"] += 1
+                        apples -= BOOSTER_PRICES["magnet 20 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if magnet_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["magnet 30 seconds"] <= apples:
+                        available_boosters["magnet 30 seconds"] += 1
+                        apples -= BOOSTER_PRICES["magnet 30 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if slow_motion_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["slow motion 10 seconds"] <= apples:
+                        available_boosters["slow motion 10 seconds"] += 1
+                        apples -= BOOSTER_PRICES["slow motion 10 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if slow_motion_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["slow motion 20 seconds"] <= apples:
+                        available_boosters["slow motion 20 seconds"] += 1
+                        apples -= BOOSTER_PRICES["slow motion 20 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if slow_motion_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["slow motion 30 seconds"] <= apples:
+                        available_boosters["slow motion 30 seconds"] += 1
+                        apples -= BOOSTER_PRICES["slow motion 30 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if shield_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["shield 10 seconds"] <= apples:
+                        available_boosters["shield 10 seconds"] += 1
+                        apples -= BOOSTER_PRICES["shield 10 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if shield_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["shield 20 seconds"] <= apples:
+                        available_boosters["shield 20 seconds"] += 1
+                        apples -= BOOSTER_PRICES["shield 20 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if shield_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    if BOOSTER_PRICES["shield 30 seconds"] <= apples:
+                        available_boosters["shield 30 seconds"] += 1
+                        apples -= BOOSTER_PRICES["shield 30 seconds"]
+                        update_database_boosters()
+                        update_database_apples()
+                    else:
+                        booster_shop_elements.add(insufficient_apples_window)
+
+                if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    start_game()
+                    return
+
+        screen.fill(SHOP_SCREEN_COLOR)
+        screen.blit(magnet_booster_10s_image,
+                    (magnet_booster_10s_image_x, magnet_booster_10s_image_y))
+        screen.blit(magnet_booster_20s_image,
+                    (magnet_booster_20s_image_x, magnet_booster_20s_image_y))
+        screen.blit(magnet_booster_30s_image,
+                    (magnet_booster_30s_image_x, magnet_booster_30s_image_y))
+        screen.blit(slow_motion_booster_10s_image,
+                    (slow_motion_booster_10s_image_x, slow_motion_booster_10s_image_y))
+        screen.blit(slow_motion_booster_20s_image,
+                    (slow_motion_booster_20s_image_x, slow_motion_booster_20s_image_y))
+        screen.blit(slow_motion_booster_30s_image,
+                    (slow_motion_booster_30s_image_x, slow_motion_booster_30s_image_y))
+        screen.blit(shield_booster_10s_image,
+                    (shield_booster_10s_image_x, shield_booster_10s_image_y))
+        screen.blit(shield_booster_20s_image,
+                    (shield_booster_20s_image_x, shield_booster_20s_image_y))
+        screen.blit(shield_booster_30s_image,
+                    (shield_booster_30s_image_x, shield_booster_30s_image_y))
+        booster_shop_elements.draw(screen)
+        pygame.display.flip()
+
+
 def add_score_to_database() -> None:
     con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
     cur = con.cursor()
@@ -540,6 +853,58 @@ def get_available_skins() -> list:
     skins = cur.execute('SELECT skin FROM skins').fetchall()
 
     return [skin[0] for skin in skins]
+
+
+def update_database_boosters() -> None:
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    cur = con.cursor()
+
+    cur.execute('UPDATE boosters SET magnet_10_seconds = ?',
+                (available_boosters["magnet 10 seconds"],))
+    cur.execute('UPDATE boosters SET magnet_20_seconds = ?',
+                (available_boosters["magnet 20 seconds"],))
+    cur.execute('UPDATE boosters SET magnet_30_seconds = ?',
+                (available_boosters["magnet 30 seconds"],))
+    cur.execute('UPDATE boosters SET slow_motion_10_seconds = ?',
+                (available_boosters["slow motion 10 seconds"],))
+    cur.execute('UPDATE boosters SET slow_motion_20_seconds = ?',
+                (available_boosters["slow motion 20 seconds"],))
+    cur.execute('UPDATE boosters SET slow_motion_30_seconds = ?',
+                (available_boosters["slow motion 30 seconds"],))
+    cur.execute('UPDATE boosters SET shield_10_seconds = ?',
+                (available_boosters["shield 10 seconds"],))
+    cur.execute('UPDATE boosters SET shield_20_seconds = ?',
+                (available_boosters["shield 20 seconds"],))
+    cur.execute('UPDATE boosters SET shield_30_seconds = ?',
+                (available_boosters["shield 30 seconds"],))
+    con.commit()
+
+
+def get_available_boosters() -> dict:
+    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    cur = con.cursor()
+
+    boosters = dict()
+    boosters["magnet 10 seconds"] \
+        = cur.execute('SELECT magnet_10_seconds FROM boosters').fetchall()[0][0]
+    boosters["magnet 20 seconds"] \
+        = cur.execute('SELECT magnet_20_seconds FROM boosters').fetchall()[0][0]
+    boosters["magnet 30 seconds"] \
+        = cur.execute('SELECT magnet_30_seconds FROM boosters').fetchall()[0][0]
+    boosters["slow motion 10 seconds"] \
+        = cur.execute('SELECT slow_motion_10_seconds FROM boosters').fetchall()[0][0]
+    boosters["slow motion 20 seconds"] \
+        = cur.execute('SELECT slow_motion_20_seconds FROM boosters').fetchall()[0][0]
+    boosters["slow motion 30 seconds"] \
+        = cur.execute('SELECT slow_motion_30_seconds FROM boosters').fetchall()[0][0]
+    boosters["shield 10 seconds"] \
+        = cur.execute('SELECT shield_10_seconds FROM boosters').fetchall()[0][0]
+    boosters["shield 20 seconds"] \
+        = cur.execute('SELECT shield_20_seconds FROM boosters').fetchall()[0][0]
+    boosters["shield 30 seconds"] \
+        = cur.execute('SELECT shield_30_seconds FROM boosters').fetchall()[0][0]
+
+    return boosters
 
 
 def generate_road_part() -> None:
@@ -739,6 +1104,7 @@ if __name__ == '__main__':
     score = 0
     apples = get_number_of_apples()
     available_skins = get_available_skins()
+    available_boosters = get_available_boosters()
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
