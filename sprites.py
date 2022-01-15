@@ -264,6 +264,16 @@ class Apple(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
 
+class Booster(pygame.sprite.Sprite):
+    def __init__(self, image, duration, *group):
+        super(Booster, self).__init__(*group)
+
+        self.image = pygame.transform.scale(image, (50, 50))
+        self.rect = self.image.get_rect()
+
+        self.duration = duration
+
+
 class InsufficientApplesWindow(pygame.sprite.Sprite):
     def __init__(self, *group):
         super(InsufficientApplesWindow, self).__init__(*group)
