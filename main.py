@@ -3,9 +3,11 @@ import pyautogui
 import random
 import sqlite3
 import os
+import time
 
 from sprites import (Button, RoadPart, Snake, SnakeTail, SnakeHeadPoint, Apple, Monster,
-                     InsufficientApplesWindow, load_image, crop_image, SNAKE_DIRECTIONS)
+                     Booster, InsufficientApplesWindow, load_image, crop_image,
+                     SNAKE_DIRECTIONS)
 
 GRASS_COLOR = pygame.Color('#348C31')
 START_SCREEN_COLOR = pygame.Color('#348C31')
@@ -24,6 +26,9 @@ cur_skin = "slime"
 path_to_snake_skin = 'textures\\snake\\snakeSlime.png'
 path_to_animated_snake_skin = 'textures\\snake\\snakeSlime_ani.png'
 path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
+
+cur_booster = ""
+cur_booster_activation_time = 0
 
 
 def start_game() -> None:
@@ -693,7 +698,7 @@ def switch_to_booster_shop() -> None:
 
                 if magnet_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["magnet 10 seconds"] <= apples:
-                        available_boosters["magnet 10 seconds"] += 1
+                        available_booster_names["magnet 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 10 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -702,7 +707,7 @@ def switch_to_booster_shop() -> None:
 
                 if magnet_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["magnet 20 seconds"] <= apples:
-                        available_boosters["magnet 20 seconds"] += 1
+                        available_booster_names["magnet 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 20 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -711,7 +716,7 @@ def switch_to_booster_shop() -> None:
 
                 if magnet_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["magnet 30 seconds"] <= apples:
-                        available_boosters["magnet 30 seconds"] += 1
+                        available_booster_names["magnet 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 30 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -720,7 +725,7 @@ def switch_to_booster_shop() -> None:
 
                 if slow_motion_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["slow motion 10 seconds"] <= apples:
-                        available_boosters["slow motion 10 seconds"] += 1
+                        available_booster_names["slow motion 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 10 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -729,7 +734,7 @@ def switch_to_booster_shop() -> None:
 
                 if slow_motion_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["slow motion 20 seconds"] <= apples:
-                        available_boosters["slow motion 20 seconds"] += 1
+                        available_booster_names["slow motion 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 20 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -738,7 +743,7 @@ def switch_to_booster_shop() -> None:
 
                 if slow_motion_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["slow motion 30 seconds"] <= apples:
-                        available_boosters["slow motion 30 seconds"] += 1
+                        available_booster_names["slow motion 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 30 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -747,7 +752,7 @@ def switch_to_booster_shop() -> None:
 
                 if shield_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["shield 10 seconds"] <= apples:
-                        available_boosters["shield 10 seconds"] += 1
+                        available_booster_names["shield 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 10 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -756,7 +761,7 @@ def switch_to_booster_shop() -> None:
 
                 if shield_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["shield 20 seconds"] <= apples:
-                        available_boosters["shield 20 seconds"] += 1
+                        available_booster_names["shield 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 20 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -765,7 +770,7 @@ def switch_to_booster_shop() -> None:
 
                 if shield_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
                     if BOOSTER_PRICES["shield 30 seconds"] <= apples:
-                        available_boosters["shield 30 seconds"] += 1
+                        available_booster_names["shield 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 30 seconds"]
                         update_database_boosters()
                         update_database_apples()
@@ -860,23 +865,23 @@ def update_database_boosters() -> None:
     cur = con.cursor()
 
     cur.execute('UPDATE boosters SET magnet_10_seconds = ?',
-                (available_boosters["magnet 10 seconds"],))
+                (available_booster_names["magnet 10 seconds"],))
     cur.execute('UPDATE boosters SET magnet_20_seconds = ?',
-                (available_boosters["magnet 20 seconds"],))
+                (available_booster_names["magnet 20 seconds"],))
     cur.execute('UPDATE boosters SET magnet_30_seconds = ?',
-                (available_boosters["magnet 30 seconds"],))
+                (available_booster_names["magnet 30 seconds"],))
     cur.execute('UPDATE boosters SET slow_motion_10_seconds = ?',
-                (available_boosters["slow motion 10 seconds"],))
+                (available_booster_names["slow motion 10 seconds"],))
     cur.execute('UPDATE boosters SET slow_motion_20_seconds = ?',
-                (available_boosters["slow motion 20 seconds"],))
+                (available_booster_names["slow motion 20 seconds"],))
     cur.execute('UPDATE boosters SET slow_motion_30_seconds = ?',
-                (available_boosters["slow motion 30 seconds"],))
+                (available_booster_names["slow motion 30 seconds"],))
     cur.execute('UPDATE boosters SET shield_10_seconds = ?',
-                (available_boosters["shield 10 seconds"],))
+                (available_booster_names["shield 10 seconds"],))
     cur.execute('UPDATE boosters SET shield_20_seconds = ?',
-                (available_boosters["shield 20 seconds"],))
+                (available_booster_names["shield 20 seconds"],))
     cur.execute('UPDATE boosters SET shield_30_seconds = ?',
-                (available_boosters["shield 30 seconds"],))
+                (available_booster_names["shield 30 seconds"],))
     con.commit()
 
 
@@ -1056,6 +1061,35 @@ def move_monsters() -> None:
             monster.kill()
 
 
+def draw_boosters() -> None:
+    booster_y = screen_height - 50 - 10
+    for booster_name in available_booster_names.keys():
+        if available_booster_names[booster_name] > 0:
+            if booster_name == "magnet 10 seconds":
+                booster = Booster(load_image('images\\magnet_booster_10s.png'), 10)
+            if booster_name == "magnet 20 seconds":
+                booster = Booster(load_image('images\\magnet_booster_20s.png'), 20)
+            if booster_name == "magnet 30 seconds":
+                booster = Booster(load_image('images\\magnet_booster_30s.png'), 30)
+            if booster_name == "slow motion 10 seconds":
+                booster = Booster(load_image('images\\slow_motion_booster_10s.png'), 10)
+            if booster_name == "slow motion 20 seconds":
+                booster = Booster(load_image('images\\slow_motion_booster_20s.png'), 20)
+            if booster_name == "slow motion 30 seconds":
+                booster = Booster(load_image('images\\slow_motion_booster_30s.png'), 30)
+            if booster_name == "shield 10 seconds":
+                booster = Booster(load_image('images\\shield_booster_10s.png'), 10)
+            if booster_name == "shield 20 seconds":
+                booster = Booster(load_image('images\\shield_booster_20s.png'), 20)
+            if booster_name == "shield 30 seconds":
+                booster = Booster(load_image('images\\shield_booster_30s.png'), 30)
+            booster.rect.x = 10
+            booster.rect.y = booster_y
+            booster_y -= booster.rect.height + 10
+            available_boosters[booster] = booster_name
+            available_booster_group.add(booster)
+
+
 if __name__ == '__main__':
     pygame.init()
 
@@ -1104,7 +1138,11 @@ if __name__ == '__main__':
     score = 0
     apples = get_number_of_apples()
     available_skins = get_available_skins()
-    available_boosters = get_available_boosters()
+    available_booster_names = get_available_boosters()
+    available_boosters = dict()
+    available_booster_group = pygame.sprite.Group()
+
+    draw_boosters()
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
@@ -1193,6 +1231,21 @@ if __name__ == '__main__':
                     if monster.rect.collidepoint(mouse_x, mouse_y):
                         # If the user click on a monster
                         monster.attack_monster()
+                        break
+
+                for booster in available_booster_group:
+                    if booster.rect.collidepoint(mouse_x, mouse_y):
+                        cur_booster = available_boosters[booster]
+                        cur_booster_activation_time = time.time()
+                        available_booster_names[cur_booster] -= 1
+                        update_database_boosters()
+                        if available_booster_names[cur_booster] <= 0:
+                            del available_boosters[booster]
+                            available_booster_group.remove(booster)
+                            draw_boosters()
+                        if cur_booster.find("slow motion") != -1:
+                            snake.velocity //= 2
+                        break
 
         if snake.direction == "up":
             # Generate and move the road
@@ -1463,11 +1516,40 @@ if __name__ == '__main__':
                     snake_tail.rect.x = snake_tail_x
                     snake_tail.rect.y = snake_tail_y
 
+        if cur_booster == "magnet 10 seconds":
+            if time.time() - cur_booster_activation_time >= 10 * 1000:
+                cur_booster = ""
+            else:
+                for apple in apple_group:
+                    if apple.rect.y > 10:
+                        apples += 1
+                        apple.kill()
+
+        elif cur_booster == "magnet 20 seconds":
+            if time.time() - cur_booster_activation_time >= 20 * 1000:
+                cur_booster = ""
+            else:
+                for apple in apple_group:
+                    if apple.rect.y > 10:
+                        apples += 1
+                        apple.kill()
+
+        elif cur_booster == "magnet 30 seconds":
+            if time.time() - cur_booster_activation_time >= 30 * 1000:
+                cur_booster = ""
+            else:
+                for apple in apple_group:
+                    if apple.rect.y > 10:
+                        apples += 1
+                        apple.kill()
+
         snake_head_point.update(snake)  # Move the snake's head point
         snake_group.draw(screen)  # Draw the snake
         apple_group.draw(screen)  # Draw apples
         monster_group.draw(screen)  # Draw monsters
         pause_btn_group.draw(screen)  # Draw the pause button
+
+        available_booster_group.draw(screen)
 
         # Display the score
         score_font = pygame.font.SysFont('comicsansms', 90)
@@ -1482,15 +1564,39 @@ if __name__ == '__main__':
                              for connection in road_connections]):
             end_game()
 
-        # If the snake touches a monster, end the game
-        if pygame.sprite.spritecollideany(snake, monster_group):
+        if cur_booster == "shield 10 seconds":
+            if time.time() - cur_booster_activation_time >= 10 * 1000:
+                cur_booster = ""
+        elif cur_booster == "shield 20 seconds":
+            if time.time() - cur_booster_activation_time >= 20 * 1000:
+                cur_booster = ""
+        elif cur_booster == "shield 30 seconds":
+            if time.time() - cur_booster_activation_time >= 30 * 1000:
+                cur_booster = ""
+
+        # If the snake touches a monster and shield is not activated, end the game
+        if pygame.sprite.spritecollideany(snake, monster_group) and cur_booster.find("shield") == -1:
             end_game()
 
         pygame.display.flip()
         frames = (frames + 1) % 10 ** 9
 
         road_connections = list()
-        snake.velocity += 0.1
         score += 1
+
+        if cur_booster == "slow motion 10 seconds":
+            if time.time() - cur_booster_activation_time >= 10 * 1000:
+                cur_booster = ""
+                snake.velocity *= 2
+        elif cur_booster == "slow motion 20 seconds":
+            if time.time() - cur_booster_activation_time >= 20 * 1000:
+                cur_booster = ""
+                snake.velocity *= 2
+        elif cur_booster == "slow motion 30 seconds":
+            if time.time() - cur_booster_activation_time >= 10 * 1000:
+                cur_booster = ""
+                snake.velocity *= 2
+        else:
+            snake.velocity += 0.1
 
     pygame.quit()
