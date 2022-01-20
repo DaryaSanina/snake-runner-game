@@ -329,6 +329,11 @@ def end_game_new_best_score() -> None:
     new_best_score_text_y = (screen_height // 4 - new_best_score_text.get_height()) // 2
     screen.blit(new_best_score_text, (new_best_score_text_x, new_best_score_text_y))
 
+    # Load and play the music
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music'
+                                            '\\new_best_score_theme.mp3'))
+    pygame.mixer.music.play()
+
 
 def switch_to_shop_choosing_screen() -> None:
     global running
