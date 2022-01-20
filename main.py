@@ -32,7 +32,7 @@ cur_booster_activation_time = 0
 
 
 def start_game() -> None:
-    global running
+    global running, available_boosters, available_booster_names
 
     screen.fill(START_SCREEN_COLOR)  # Fill the screen with START_SCREEN_COLOR
 
@@ -78,6 +78,8 @@ def start_game() -> None:
     apples_text_x = (screen_width - apples_text.get_width()) // 2
     apples_text_y = best_score_text_y + best_score_text.get_height() + 25
     screen.blit(apples_text, (apples_text_x, apples_text_y))
+
+    available_booster_names = get_available_boosters()
 
     while running:
         for event in pygame.event.get():
@@ -157,6 +159,7 @@ def pause_game() -> None:
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
                     start_game()
+                    draw_boosters()
                     return
 
         pygame.display.flip()
@@ -282,6 +285,7 @@ def end_game() -> None:
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
                     start_game()
+                    draw_boosters()
                     return
 
         pygame.display.flip()
@@ -390,6 +394,7 @@ def switch_to_shop_choosing_screen() -> None:
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
                     start_game()
+                    draw_boosters()
                     return
 
         pygame.display.flip()
@@ -503,6 +508,7 @@ def switch_to_skin_shop() -> None:
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
                     start_game()
+                    draw_boosters()
                     return
 
         # Fill the screen with SHOP_SCREEN_COLOR
@@ -779,6 +785,7 @@ def switch_to_booster_shop() -> None:
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
                     start_game()
+                    draw_boosters()
                     return
 
         screen.fill(SHOP_SCREEN_COLOR)
@@ -1062,27 +1069,31 @@ def move_monsters() -> None:
 
 
 def draw_boosters() -> None:
+    global available_booster_group
+    available_booster_group = pygame.sprite.Group()
     booster_y = screen_height - 50 - 10
     for booster_name in available_booster_names.keys():
         if available_booster_names[booster_name] > 0:
             if booster_name == "magnet 10 seconds":
                 booster = Booster(load_image('images\\magnet_booster_10s.png'), 10)
-            if booster_name == "magnet 20 seconds":
+            elif booster_name == "magnet 20 seconds":
                 booster = Booster(load_image('images\\magnet_booster_20s.png'), 20)
-            if booster_name == "magnet 30 seconds":
+            elif booster_name == "magnet 30 seconds":
                 booster = Booster(load_image('images\\magnet_booster_30s.png'), 30)
-            if booster_name == "slow motion 10 seconds":
+            elif booster_name == "slow motion 10 seconds":
                 booster = Booster(load_image('images\\slow_motion_booster_10s.png'), 10)
-            if booster_name == "slow motion 20 seconds":
+            elif booster_name == "slow motion 20 seconds":
                 booster = Booster(load_image('images\\slow_motion_booster_20s.png'), 20)
-            if booster_name == "slow motion 30 seconds":
+            elif booster_name == "slow motion 30 seconds":
                 booster = Booster(load_image('images\\slow_motion_booster_30s.png'), 30)
-            if booster_name == "shield 10 seconds":
+            elif booster_name == "shield 10 seconds":
                 booster = Booster(load_image('images\\shield_booster_10s.png'), 10)
-            if booster_name == "shield 20 seconds":
+            elif booster_name == "shield 20 seconds":
                 booster = Booster(load_image('images\\shield_booster_20s.png'), 20)
-            if booster_name == "shield 30 seconds":
+            elif booster_name == "shield 30 seconds":
                 booster = Booster(load_image('images\\shield_booster_30s.png'), 30)
+            else:
+                continue
             booster.rect.x = 10
             booster.rect.y = booster_y
             booster_y -= booster.rect.height + 10
@@ -1142,8 +1153,6 @@ if __name__ == '__main__':
     available_boosters = dict()
     available_booster_group = pygame.sprite.Group()
 
-    draw_boosters()
-
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
 
@@ -1152,6 +1161,7 @@ if __name__ == '__main__':
 
     running = True
     start_game()
+    draw_boosters()
     while running:
         tick = clock.tick(fps)
         for event in pygame.event.get():
@@ -1240,11 +1250,14 @@ if __name__ == '__main__':
                         available_booster_names[cur_booster] -= 1
                         update_database_boosters()
                         if available_booster_names[cur_booster] <= 0:
+                            available_booster_names[cur_booster] = 0
                             del available_boosters[booster]
                             available_booster_group.remove(booster)
                             draw_boosters()
                         if cur_booster.find("slow motion") != -1:
                             snake.velocity //= 2
+                            if snake.velocity == 0:
+                                snake.velocity = 1
                         break
 
         if snake.direction == "up":
@@ -1517,7 +1530,7 @@ if __name__ == '__main__':
                     snake_tail.rect.y = snake_tail_y
 
         if cur_booster == "magnet 10 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
+            if time.time() - cur_booster_activation_time >= 10:
                 cur_booster = ""
             else:
                 for apple in apple_group:
@@ -1526,7 +1539,7 @@ if __name__ == '__main__':
                         apple.kill()
 
         elif cur_booster == "magnet 20 seconds":
-            if time.time() - cur_booster_activation_time >= 20 * 1000:
+            if time.time() - cur_booster_activation_time >= 20:
                 cur_booster = ""
             else:
                 for apple in apple_group:
@@ -1535,7 +1548,7 @@ if __name__ == '__main__':
                         apple.kill()
 
         elif cur_booster == "magnet 30 seconds":
-            if time.time() - cur_booster_activation_time >= 30 * 1000:
+            if time.time() - cur_booster_activation_time >= 30:
                 cur_booster = ""
             else:
                 for apple in apple_group:
@@ -1565,13 +1578,13 @@ if __name__ == '__main__':
             end_game()
 
         if cur_booster == "shield 10 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
+            if time.time() - cur_booster_activation_time >= 10:
                 cur_booster = ""
         elif cur_booster == "shield 20 seconds":
-            if time.time() - cur_booster_activation_time >= 20 * 1000:
+            if time.time() - cur_booster_activation_time >= 20:
                 cur_booster = ""
         elif cur_booster == "shield 30 seconds":
-            if time.time() - cur_booster_activation_time >= 30 * 1000:
+            if time.time() - cur_booster_activation_time >= 30:
                 cur_booster = ""
 
         # If the snake touches a monster and shield is not activated, end the game
@@ -1585,15 +1598,15 @@ if __name__ == '__main__':
         score += 1
 
         if cur_booster == "slow motion 10 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
+            if time.time() - cur_booster_activation_time >= 10:
                 cur_booster = ""
                 snake.velocity *= 2
         elif cur_booster == "slow motion 20 seconds":
-            if time.time() - cur_booster_activation_time >= 20 * 1000:
+            if time.time() - cur_booster_activation_time >= 20:
                 cur_booster = ""
                 snake.velocity *= 2
         elif cur_booster == "slow motion 30 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
+            if time.time() - cur_booster_activation_time >= 30:
                 cur_booster = ""
                 snake.velocity *= 2
         else:
