@@ -147,6 +147,10 @@ def pause_game() -> None:
 
     pause_screen_buttons.draw(screen)
 
+    # Load and play the music
+    if pygame.mixer.music.get_busy():
+        pygame.mixer.music.pause()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
@@ -1181,10 +1185,14 @@ if __name__ == '__main__':
             if event.type == pygame.WINDOWCLOSE:
                 running = False
 
+            if event.type == pygame.mixer.music.get_endevent():
+                pygame.mixer.music.play()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if pause_btn.rect.collidepoint(mouse_x, mouse_y):
                     pause_game()
+                    pygame.mixer.music.unpause()
 
             if event.type == pygame.KEYDOWN:
                 if (event.key == pygame.K_LEFT or event.key == pygame.K_a) \
