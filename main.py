@@ -82,7 +82,7 @@ def start_game() -> None:
     available_booster_names = get_available_boosters()
 
     # Load and play the music
-    pygame.mixer.music.load('snake-runner-game\\data\\music\\menu_theme.mp3')
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\menu_theme.mp3'))
     pygame.mixer.music.play()
 
     while running:
@@ -1170,6 +1170,11 @@ if __name__ == '__main__':
     running = True
     start_game()
     draw_boosters()
+
+    # Load and play the music
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\gameplay_theme.mp3'))
+    pygame.mixer.music.play()
+
     while running:
         tick = clock.tick(fps)
         for event in pygame.event.get():
