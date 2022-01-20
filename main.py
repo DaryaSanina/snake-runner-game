@@ -81,10 +81,17 @@ def start_game() -> None:
 
     available_booster_names = get_available_boosters()
 
+    # Load and play the music
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\menu_theme.mp3'))
+    pygame.mixer.music.play()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
+
+            if event.type == pygame.mixer.music.get_endevent():
+                pygame.mixer.music.play()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -139,6 +146,10 @@ def pause_game() -> None:
     screen.blit(pause_text, (pause_text_x, pause_text_y))
 
     pause_screen_buttons.draw(screen)
+
+    # Load and play the music
+    if pygame.mixer.music.get_busy():
+        pygame.mixer.music.pause()
 
     while running:
         for event in pygame.event.get():
@@ -1152,6 +1163,8 @@ if __name__ == '__main__':
     available_boosters = dict()
     available_booster_group = pygame.sprite.Group()
 
+    pygame.mixer.music.set_endevent(pygame.USEREVENT)
+
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
 
@@ -1161,16 +1174,25 @@ if __name__ == '__main__':
     running = True
     start_game()
     draw_boosters()
+
+    # Load and play the music
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\gameplay_theme.mp3'))
+    pygame.mixer.music.play()
+
     while running:
         tick = clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
 
+            if event.type == pygame.mixer.music.get_endevent():
+                pygame.mixer.music.play()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if pause_btn.rect.collidepoint(mouse_x, mouse_y):
                     pause_game()
+                    pygame.mixer.music.unpause()
 
             if event.type == pygame.KEYDOWN:
                 if (event.key == pygame.K_LEFT or event.key == pygame.K_a) \
