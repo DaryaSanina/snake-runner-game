@@ -497,7 +497,6 @@ def switch_to_skin_shop() -> None:
                             slime_skin_buy_btn.image = \
                                 load_image('textures\\buttons\\select_btn.png')
                     if skin_price <= apples:
-                        cur_skin = "lava"
                         path_to_snake_skin = 'textures\\snake\\snakeLava.png'
                         path_to_animated_snake_skin = 'textures\\snake\\snakeLava_ani.png'
                         path_to_dead_snake_skin = 'textures\\snake\\snakeLava_dead.png'
