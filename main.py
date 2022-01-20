@@ -315,6 +315,11 @@ def end_game_game_over() -> None:
     game_over_text_y = (screen_height // 4 - game_over_text.get_height()) // 2
     screen.blit(game_over_text, (game_over_text_x, game_over_text_y))
 
+    # Load and play the sound effect
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music'
+                                            '\\game_over_theme.mp3'))
+    pygame.mixer.music.play()
+
 
 def end_game_new_best_score() -> None:
     # Fill the screen with yellow color (alpha = 128)
@@ -329,7 +334,7 @@ def end_game_new_best_score() -> None:
     new_best_score_text_y = (screen_height // 4 - new_best_score_text.get_height()) // 2
     screen.blit(new_best_score_text, (new_best_score_text_x, new_best_score_text_y))
 
-    # Load and play the music
+    # Load and play the sound effect
     pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music'
                                             '\\new_best_score_theme.mp3'))
     pygame.mixer.music.play()
