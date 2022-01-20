@@ -81,10 +81,17 @@ def start_game() -> None:
 
     available_booster_names = get_available_boosters()
 
+    # Load and play the music
+    pygame.mixer.music.load('snake-runner-game\\data\\music\\menu_theme.mp3')
+    pygame.mixer.music.play()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
+
+            if event.type == pygame.mixer.music.get_endevent():
+                pygame.mixer.music.play()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -1151,6 +1158,8 @@ if __name__ == '__main__':
     available_booster_names = get_available_boosters()
     available_boosters = dict()
     available_booster_group = pygame.sprite.Group()
+
+    pygame.mixer.music.set_endevent(pygame.USEREVENT)
 
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
