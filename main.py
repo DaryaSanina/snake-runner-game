@@ -30,6 +30,8 @@ path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
 cur_booster = ""
 cur_booster_activation_time = 0
 
+pygame.mixer.music.set_endevent(pygame.USEREVENT)
+
 
 def start_game() -> None:
     global running, available_boosters, available_booster_names
@@ -83,6 +85,7 @@ def start_game() -> None:
 
     # Load and play the music
     pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\menu_theme.mp3'))
+    pygame.mixer.music.set_volume(0.75)
     pygame.mixer.music.play()
 
     while running:
@@ -212,6 +215,11 @@ def restart_game() -> None:
 
     apple_group = pygame.sprite.Group()
     monster_group = pygame.sprite.Group()
+
+    # Load and play the sound effect
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music'
+                                            '\\gameplay_theme.mp3'))
+    pygame.mixer.music.play()
 
     score = 0
 
@@ -1173,8 +1181,6 @@ if __name__ == '__main__':
     available_boosters = dict()
     available_booster_group = pygame.sprite.Group()
 
-    pygame.mixer.music.set_endevent(pygame.USEREVENT)
-
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
 
@@ -1187,6 +1193,7 @@ if __name__ == '__main__':
 
     # Load and play the music
     pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\gameplay_theme.mp3'))
+    pygame.mixer.music.set_volume(0.75)
     pygame.mixer.music.play()
 
     while running:
