@@ -15,6 +15,7 @@ PAUSE_SCREEN_COLOR = pygame.Color(0, 162, 255, 150)
 GAME_OVER_SCREEN_COLOR = pygame.Color(255, 0, 0, 128)
 NEW_BEST_SCORE_SCREEN_COLOR = pygame.Color(255, 255, 0, 128)
 SHOP_SCREEN_COLOR = pygame.Color("#E5CA77")
+SHIELD_COLOR = pygame.Color((255, 210, 0))
 
 SKIN_PRICES = {"lava": 25}
 BOOSTER_PRICES = {"magnet 10 seconds": 10, "magnet 20 seconds": 20, "magnet 30 seconds": 30,
@@ -1876,33 +1877,6 @@ if __name__ == '__main__':
                     snake_tail.rect.x = snake_tail_x
                     snake_tail.rect.y = snake_tail_y
 
-        if cur_booster == "magnet 10 seconds":
-            if time.time() - cur_booster_activation_time >= 10:
-                cur_booster = ""
-            else:
-                for apple in apple_group:
-                    if apple.rect.y > 10:
-                        apples += 1
-                        apple.kill()
-
-        elif cur_booster == "magnet 20 seconds":
-            if time.time() - cur_booster_activation_time >= 20:
-                cur_booster = ""
-            else:
-                for apple in apple_group:
-                    if apple.rect.y > 10:
-                        apples += 1
-                        apple.kill()
-
-        elif cur_booster == "magnet 30 seconds":
-            if time.time() - cur_booster_activation_time >= 30:
-                cur_booster = ""
-            else:
-                for apple in apple_group:
-                    if apple.rect.y > 10:
-                        apples += 1
-                        apple.kill()
-
         snake_head_point.update(snake)  # Move the snake's head point
         snake_group.draw(screen)  # Draw the snake
         apple_group.draw(screen)  # Draw apples
@@ -1924,7 +1898,18 @@ if __name__ == '__main__':
                              for connection in road_connections]):
             end_game()
 
-        if cur_booster == "shield 10 seconds":
+        # Deactivate current booster if it's usage time >= possible booster usage time
+        if cur_booster == "magnet 10 seconds":
+            if time.time() - cur_booster_activation_time >= 10:
+                cur_booster = ""
+        elif cur_booster == "magnet 20 seconds":
+            if time.time() - cur_booster_activation_time >= 20:
+                cur_booster = ""
+        elif cur_booster == "magnet 30 seconds":
+            if time.time() - cur_booster_activation_time >= 30:
+                cur_booster = ""
+
+        elif cur_booster == "shield 10 seconds":
             if time.time() - cur_booster_activation_time >= 10:
                 cur_booster = ""
         elif cur_booster == "shield 20 seconds":
@@ -1933,6 +1918,27 @@ if __name__ == '__main__':
         elif cur_booster == "shield 30 seconds":
             if time.time() - cur_booster_activation_time >= 30:
                 cur_booster = ""
+
+        # Collect apples if current booster is a magnet
+        if cur_booster.find("magnet") != -1:
+            for apple in apple_group:
+                if apple.rect.y > 10:
+                    apples += 1
+                    apple.kill()
+
+        # Booster visual effects
+        if cur_booster.find("magnet") != -1:
+            magnet_surface = load_image('textures\\boosters\\magnet.png')
+            magnet_surface = pygame.transform.scale(magnet_surface,
+                                                    (snake.rect.width, snake.rect.width))
+            screen.blit(magnet_surface, (snake.rect.x, snake.rect.y - magnet_surface.get_height()))
+        if cur_booster.find("shield") != -1:
+            shield_surface = pygame.Surface((500, 500))
+            shield_surface.set_colorkey((0, 0, 0))
+            shield_surface.set_alpha(100)
+            pygame.draw.circle(shield_surface, SHIELD_COLOR, (250, 250), 250)
+            screen.blit(shield_surface, (snake_head_point.rect.x - 250,
+                                         snake_head_point.rect.y - 250))
 
         # If the snake touches a monster and shield is not activated, end the game
         if pygame.sprite.spritecollideany(snake, monster_group) and cur_booster.find("shield") == -1:
