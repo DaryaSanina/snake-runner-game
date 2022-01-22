@@ -1927,6 +1927,11 @@ if __name__ == '__main__':
                     apple.kill()
 
         # Booster visual effects
+        if cur_booster.find("magnet") != -1:
+            magnet_surface = load_image('textures\\boosters\\magnet.png')
+            magnet_surface = pygame.transform.scale(magnet_surface,
+                                                    (snake.rect.width, snake.rect.width))
+            screen.blit(magnet_surface, (snake.rect.x, snake.rect.y - magnet_surface.get_height()))
         if cur_booster.find("shield") != -1:
             shield_surface = pygame.Surface((500, 500))
             shield_surface.set_colorkey((0, 0, 0))
