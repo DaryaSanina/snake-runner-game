@@ -30,6 +30,19 @@ path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
 cur_booster = ""
 cur_booster_activation_time = 0
 
+pygame.mixer.music.set_endevent(pygame.USEREVENT)
+
+
+def sound_effect(effect_path: str, cur_track_filename=None, cur_track_pos=0) -> None:
+    was_busy = pygame.mixer.music.get_busy()
+    pygame.mixer.music.load(effect_path)
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
+        pass
+    if was_busy and cur_track_filename is not None:
+        pygame.mixer.music.load(cur_track_filename)
+        pygame.mixer.music.play(start=cur_track_pos / 1000)
+
 
 def start_game() -> None:
     global running, available_boosters, available_booster_names
@@ -48,8 +61,7 @@ def start_game() -> None:
     shop_btn = Button(load_image('textures\\buttons\\shop_btn.png'))
     shop_btn.rect = shop_btn.image.get_rect()
     shop_btn.rect.x = play_btn.rect.x + play_btn.rect.width \
-        + (screen_width - play_btn.rect.x - play_btn.rect.width
-           - shop_btn.rect.width) // 2
+        + (screen_width - play_btn.rect.x - play_btn.rect.width - shop_btn.rect.width) // 2
     shop_btn.rect.y = (screen_height - shop_btn.rect.height) // 2
     start_screen_btn_group.add(shop_btn)
 
@@ -83,6 +95,7 @@ def start_game() -> None:
 
     # Load and play the music
     pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\menu_theme.mp3'))
+    pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play()
 
     while running:
@@ -97,10 +110,18 @@ def start_game() -> None:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
                 if play_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     restart_game()
                     return
 
                 if shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     switch_to_shop_choosing_screen()
                     return
         pygame.display.flip()
@@ -165,10 +186,12 @@ def pause_game() -> None:
                     return
 
                 if restart_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg')
                     restart_game()
                     return
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg')
                     start_game()
                     draw_boosters()
                     return
@@ -178,7 +201,7 @@ def pause_game() -> None:
 
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
-        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock,\
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, \
         frames, score, apple_group, monster_group
 
     # Create a pause button
@@ -212,6 +235,11 @@ def restart_game() -> None:
 
     apple_group = pygame.sprite.Group()
     monster_group = pygame.sprite.Group()
+
+    # Load and play the sound effect
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music'
+                                            '\\gameplay_theme.mp3'))
+    pygame.mixer.music.play()
 
     score = 0
 
@@ -291,10 +319,12 @@ def end_game() -> None:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
                 if restart_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg')
                     restart_game()
                     return
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg')
                     start_game()
                     draw_boosters()
                     return
@@ -315,6 +345,11 @@ def end_game_game_over() -> None:
     game_over_text_y = (screen_height // 4 - game_over_text.get_height()) // 2
     screen.blit(game_over_text, (game_over_text_x, game_over_text_y))
 
+    # Load and play the sound effect
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music'
+                                            '\\game_over_theme.mp3'))
+    pygame.mixer.music.play()
+
 
 def end_game_new_best_score() -> None:
     # Fill the screen with yellow color (alpha = 128)
@@ -328,6 +363,11 @@ def end_game_new_best_score() -> None:
     new_best_score_text_x = (screen_width - new_best_score_text.get_width()) // 2
     new_best_score_text_y = (screen_height // 4 - new_best_score_text.get_height()) // 2
     screen.blit(new_best_score_text, (new_best_score_text_x, new_best_score_text_y))
+
+    # Load and play the sound effect
+    pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music'
+                                            '\\new_best_score_theme.mp3'))
+    pygame.mixer.music.play()
 
 
 def switch_to_shop_choosing_screen() -> None:
@@ -396,14 +436,26 @@ def switch_to_shop_choosing_screen() -> None:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
                 if skin_shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     switch_to_skin_shop()
                     return
 
                 if booster_shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     switch_to_booster_shop()
                     return
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     start_game()
                     draw_boosters()
                     return
@@ -412,7 +464,7 @@ def switch_to_shop_choosing_screen() -> None:
 
 
 def switch_to_skin_shop() -> None:
-    global running, cur_skin, path_to_snake_skin, path_to_animated_snake_skin,\
+    global running, cur_skin, path_to_snake_skin, path_to_animated_snake_skin, \
         path_to_dead_snake_skin, apples
 
     # Fill the screen with SHOP_SCREEN_COLOR
@@ -483,6 +535,10 @@ def switch_to_skin_shop() -> None:
                 skin_shop_elements.remove(insufficient_apples_window)
 
                 if slime_skin_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if cur_skin != "slime":  # The skin is bought and not selected
                         slime_skin_buy_btn.image = \
                             load_image('textures\\buttons\\selected_inactive_btn.png')
@@ -494,6 +550,10 @@ def switch_to_skin_shop() -> None:
                     path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
 
                 if lava_skin_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     skin_price = 0
                     if "lava" not in available_skins:  # The skin is not bought yet
                         skin_price = SKIN_PRICES["lava"]
@@ -515,8 +575,16 @@ def switch_to_skin_shop() -> None:
                         update_database_apples()
                     else:
                         skin_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     start_game()
                     draw_boosters()
                     return
@@ -713,6 +781,10 @@ def switch_to_booster_shop() -> None:
                 booster_shop_elements.remove(insufficient_apples_window)
 
                 if magnet_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["magnet 10 seconds"] <= apples:
                         available_booster_names["magnet 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 10 seconds"]
@@ -720,8 +792,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if magnet_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["magnet 20 seconds"] <= apples:
                         available_booster_names["magnet 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 20 seconds"]
@@ -729,8 +809,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if magnet_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["magnet 30 seconds"] <= apples:
                         available_booster_names["magnet 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 30 seconds"]
@@ -738,8 +826,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if slow_motion_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["slow motion 10 seconds"] <= apples:
                         available_booster_names["slow motion 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 10 seconds"]
@@ -747,8 +843,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if slow_motion_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["slow motion 20 seconds"] <= apples:
                         available_booster_names["slow motion 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 20 seconds"]
@@ -756,8 +860,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if slow_motion_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["slow motion 30 seconds"] <= apples:
                         available_booster_names["slow motion 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 30 seconds"]
@@ -765,8 +877,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if shield_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["shield 10 seconds"] <= apples:
                         available_booster_names["shield 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 10 seconds"]
@@ -774,8 +894,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if shield_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["shield 20 seconds"] <= apples:
                         available_booster_names["shield 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 20 seconds"]
@@ -783,8 +911,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if shield_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     if BOOSTER_PRICES["shield 30 seconds"] <= apples:
                         available_booster_names["shield 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 30 seconds"]
@@ -792,8 +928,16 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                     cur_track_filename=os.path.abspath(
+                                         'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     cur_track_pos=pygame.mixer.music.get_pos())
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    sound_effect('snake-runner-game\\data\\music\\click.ogg',
+                                 cur_track_filename=os.path.abspath(
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                 cur_track_pos=pygame.mixer.music.get_pos())
                     start_game()
                     draw_boosters()
                     return
@@ -1163,8 +1307,6 @@ if __name__ == '__main__':
     available_boosters = dict()
     available_booster_group = pygame.sprite.Group()
 
-    pygame.mixer.music.set_endevent(pygame.USEREVENT)
-
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
 
@@ -1177,6 +1319,7 @@ if __name__ == '__main__':
 
     # Load and play the music
     pygame.mixer.music.load(os.path.abspath('snake-runner-game\\data\\music\\gameplay_theme.mp3'))
+    pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play()
 
     while running:
@@ -1187,12 +1330,6 @@ if __name__ == '__main__':
 
             if event.type == pygame.mixer.music.get_endevent():
                 pygame.mixer.music.play()
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                if pause_btn.rect.collidepoint(mouse_x, mouse_y):
-                    pause_game()
-                    pygame.mixer.music.unpause()
 
             if event.type == pygame.KEYDOWN:
                 if (event.key == pygame.K_LEFT or event.key == pygame.K_a) \
@@ -1258,14 +1395,17 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
-                for monster in monster_group.sprites():
-                    if monster.rect.collidepoint(mouse_x, mouse_y):
-                        # If the user click on a monster
-                        monster.attack_monster()
-                        break
+                if pause_btn.rect.collidepoint(mouse_x, mouse_y):
+                    pause_game()
+                    pygame.mixer.music.unpause()
+                    continue
 
                 for booster in available_booster_group:
                     if booster.rect.collidepoint(mouse_x, mouse_y):
+                        sound_effect(
+                            'snake-runner-game\\data\\music\\activate_booster.ogg',
+                            cur_track_filename='snake-runner-game\\data\\music\\gameplay_theme.mp3',
+                            cur_track_pos=pygame.mixer.music.get_pos())
                         cur_booster = available_boosters[booster]
                         cur_booster_activation_time = time.time()
                         available_booster_names[cur_booster] -= 1
@@ -1279,6 +1419,17 @@ if __name__ == '__main__':
                             snake.velocity //= 2
                             if snake.velocity == 0:
                                 snake.velocity = 1
+                        break
+                else:
+                    sound_effect(
+                        'snake-runner-game\\data\\music\\shot.ogg',
+                        cur_track_filename='snake-runner-game\\data\\music\\gameplay_theme.mp3',
+                        cur_track_pos=pygame.mixer.music.get_pos())
+
+                for monster in monster_group.sprites():
+                    if monster.rect.collidepoint(mouse_x, mouse_y):
+                        # If the user click on a monster
+                        monster.attack_monster()
                         break
 
         if snake.direction == "up":
