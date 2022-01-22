@@ -526,6 +526,12 @@ def switch_to_skin_shop() -> None:
     lava_skin_image_x = screen_width // 3 + (screen_width // 3 - lava_skin_image.get_width()) // 2
     lava_skin_image_y = 50
     screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
+    # Display the price
+    if "lava" not in available_skins:
+        price = price_font.render(f"{SKIN_PRICES['lava']} apples", True, (255, 255, 255))
+        price_x = lava_skin_image_x + (lava_skin_image.get_width() - price.get_width()) // 2
+        price_y = lava_skin_image_y + lava_skin_image.get_height() - price.get_height() - 10
+        screen.blit(price, (price_x, price_y))
     # "Buy" button
     if "lava" not in available_skins:
         lava_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
@@ -630,6 +636,8 @@ def switch_to_skin_shop() -> None:
 
         screen.blit(slime_skin_image, (slime_skin_image_x, slime_skin_image_y))
         screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
+        if "lava" not in available_skins:
+            screen.blit(price, (price_x, price_y))
 
         skin_shop_elements.draw(screen)
         pygame.display.flip()
@@ -1320,6 +1328,8 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(screen_size)
 
     pygame.display.set_caption("Snake Runner")
+
+    price_font = pygame.font.SysFont('comicsansms', 30)
 
     # Create a pause button
     pause_btn_group = pygame.sprite.Group()
