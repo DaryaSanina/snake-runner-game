@@ -662,6 +662,14 @@ def switch_to_booster_shop() -> None:
     magnet_booster_10s_image_x = (screen_width // 3 - magnet_booster_10s_image.get_width()) // 2
     magnet_booster_10s_image_y = 20
     screen.blit(magnet_booster_10s_image, (magnet_booster_10s_image_x, magnet_booster_10s_image_y))
+    # Display the price
+    magnet_booster_10s_price = price_font.render(f"{BOOSTER_PRICES['magnet 10 seconds']} apples",
+                                                 True, (255, 255, 255))
+    magnet_booster_10s_price_x = magnet_booster_10s_image_x \
+        + (magnet_booster_10s_image.get_width() - magnet_booster_10s_price.get_width()) // 2
+    magnet_booster_10s_price_y = magnet_booster_10s_image_y \
+        + magnet_booster_10s_image.get_height() - magnet_booster_10s_price.get_height() - 10
+    screen.blit(magnet_booster_10s_price, (magnet_booster_10s_price_x, magnet_booster_10s_price_y))
     # "Buy" button
     magnet_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     magnet_booster_10s_buy_btn.rect.x = \
@@ -677,6 +685,14 @@ def switch_to_booster_shop() -> None:
     magnet_booster_20s_image_x = (screen_width // 3 - magnet_booster_20s_image.get_width()) // 2
     magnet_booster_20s_image_y = 20 + magnet_booster_10s_image.get_height() + 75 + 20
     screen.blit(magnet_booster_20s_image, (magnet_booster_20s_image_x, magnet_booster_20s_image_y))
+    # Display the price
+    magnet_booster_20s_price = price_font.render(f"{BOOSTER_PRICES['magnet 20 seconds']} apples",
+                                                 True, (255, 255, 255))
+    magnet_booster_20s_price_x = magnet_booster_20s_image_x \
+        + (magnet_booster_20s_image.get_width() - magnet_booster_20s_price.get_width()) // 2
+    magnet_booster_20s_price_y = magnet_booster_20s_image_y \
+        + magnet_booster_20s_image.get_height() - magnet_booster_20s_price.get_height() - 10
+    screen.blit(magnet_booster_20s_price, (magnet_booster_20s_price_x, magnet_booster_20s_price_y))
     # "Buy" button
     magnet_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     magnet_booster_20s_buy_btn.rect.x = \
@@ -693,6 +709,14 @@ def switch_to_booster_shop() -> None:
     magnet_booster_30s_image_y = magnet_booster_20s_image_y + magnet_booster_20s_image.get_height() \
         + 75 + 20
     screen.blit(magnet_booster_30s_image, (magnet_booster_30s_image_x, magnet_booster_30s_image_y))
+    # Display the price
+    magnet_booster_30s_price = price_font.render(f"{BOOSTER_PRICES['magnet 30 seconds']} apples",
+                                                 True, (255, 255, 255))
+    magnet_booster_30s_price_x = magnet_booster_30s_image_x \
+        + (magnet_booster_30s_image.get_width() - magnet_booster_30s_price.get_width()) // 2
+    magnet_booster_30s_price_y = magnet_booster_30s_image_y \
+        + magnet_booster_30s_image.get_height() - magnet_booster_30s_price.get_height() - 10
+    screen.blit(magnet_booster_30s_price, (magnet_booster_30s_price_x, magnet_booster_30s_price_y))
     # "Buy" button
     magnet_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     magnet_booster_30s_buy_btn.rect.x = \
@@ -710,6 +734,17 @@ def switch_to_booster_shop() -> None:
     slow_motion_booster_10s_image_y = 20
     screen.blit(slow_motion_booster_10s_image,
                 (slow_motion_booster_10s_image_x, slow_motion_booster_10s_image_y))
+    # Display the price
+    slow_motion_booster_10s_price = price_font.render(
+        f"{BOOSTER_PRICES['slow motion 10 seconds']} apples", True, (255, 255, 255))
+    slow_motion_booster_10s_price_x = slow_motion_booster_10s_image_x \
+        + (slow_motion_booster_10s_image.get_width() - slow_motion_booster_10s_price.get_width()) \
+        // 2
+    slow_motion_booster_10s_price_y = slow_motion_booster_10s_image_y \
+        + slow_motion_booster_10s_image.get_height() - slow_motion_booster_10s_price.get_height() \
+        - 10
+    screen.blit(slow_motion_booster_10s_price,
+                (slow_motion_booster_10s_price_x, slow_motion_booster_10s_price_y))
     # "Buy" button
     slow_motion_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
                                              size=(150, 75))
@@ -728,6 +763,17 @@ def switch_to_booster_shop() -> None:
     slow_motion_booster_20s_image_y = 20 + slow_motion_booster_10s_image.get_height() + 75 + 20
     screen.blit(slow_motion_booster_20s_image,
                 (slow_motion_booster_20s_image_x, slow_motion_booster_20s_image_y))
+    # Display the price
+    slow_motion_booster_20s_price = price_font.render(
+        f"{BOOSTER_PRICES['slow motion 20 seconds']} apples", True, (255, 255, 255))
+    slow_motion_booster_20s_price_x = slow_motion_booster_20s_image_x \
+        + (slow_motion_booster_20s_image.get_width() - slow_motion_booster_20s_price.get_width()) \
+        // 2
+    slow_motion_booster_20s_price_y = slow_motion_booster_20s_image_y \
+        + slow_motion_booster_20s_image.get_height() - slow_motion_booster_20s_price.get_height() \
+        - 10
+    screen.blit(slow_motion_booster_20s_price,
+                (slow_motion_booster_20s_price_x, slow_motion_booster_20s_price_y))
     # "Buy" button
     slow_motion_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
                                              size=(150, 75))
@@ -747,6 +793,17 @@ def switch_to_booster_shop() -> None:
         + slow_motion_booster_20s_image.get_height() + 75 + 20
     screen.blit(slow_motion_booster_30s_image,
                 (slow_motion_booster_30s_image_x, slow_motion_booster_30s_image_y))
+    # Display the price
+    slow_motion_booster_30s_price = price_font.render(
+        f"{BOOSTER_PRICES['slow motion 30 seconds']} apples", True, (255, 255, 255))
+    slow_motion_booster_30s_price_x = slow_motion_booster_30s_image_x \
+        + (slow_motion_booster_30s_image.get_width() - slow_motion_booster_30s_price.get_width()) \
+        // 2
+    slow_motion_booster_30s_price_y = slow_motion_booster_30s_image_y \
+        + slow_motion_booster_30s_image.get_height() - slow_motion_booster_30s_price.get_height() \
+        - 10
+    screen.blit(slow_motion_booster_30s_price,
+                (slow_motion_booster_30s_price_x, slow_motion_booster_30s_price_y))
     # "Buy" button
     slow_motion_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
                                              size=(150, 75))
@@ -764,6 +821,14 @@ def switch_to_booster_shop() -> None:
         + (screen_width // 3 - shield_booster_10s_image.get_width()) // 2
     shield_booster_10s_image_y = 20
     screen.blit(shield_booster_10s_image, (shield_booster_10s_image_x, shield_booster_10s_image_y))
+    # Display the price
+    shield_booster_10s_price = price_font.render(f"{BOOSTER_PRICES['shield 10 seconds']} apples",
+                                                 True, (255, 255, 255))
+    shield_booster_10s_price_x = shield_booster_10s_image_x \
+        + (shield_booster_10s_image.get_width() - shield_booster_10s_price.get_width()) // 2
+    shield_booster_10s_price_y = shield_booster_10s_image_y \
+        + shield_booster_10s_image.get_height() - shield_booster_10s_price.get_height() - 10
+    screen.blit(shield_booster_10s_price, (shield_booster_10s_price_x, shield_booster_10s_price_y))
     # "Buy" button
     shield_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     shield_booster_10s_buy_btn.rect.x = \
@@ -780,6 +845,14 @@ def switch_to_booster_shop() -> None:
         + (screen_width // 3 - shield_booster_20s_image.get_width()) // 2
     shield_booster_20s_image_y = 20 + shield_booster_10s_image.get_height() + 75 + 20
     screen.blit(shield_booster_20s_image, (shield_booster_20s_image_x, shield_booster_20s_image_y))
+    # Display the price
+    shield_booster_20s_price = price_font.render(f"{BOOSTER_PRICES['shield 20 seconds']} apples",
+                                                 True, (255, 255, 255))
+    shield_booster_20s_price_x = shield_booster_20s_image_x \
+        + (shield_booster_20s_image.get_width() - shield_booster_20s_price.get_width()) // 2
+    shield_booster_20s_price_y = shield_booster_20s_image_y \
+        + shield_booster_20s_image.get_height() - shield_booster_20s_price.get_height() - 10
+    screen.blit(shield_booster_20s_price, (shield_booster_20s_price_x, shield_booster_20s_price_y))
     # "Buy" button
     shield_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     shield_booster_20s_buy_btn.rect.x = \
@@ -797,6 +870,14 @@ def switch_to_booster_shop() -> None:
     shield_booster_30s_image_y = shield_booster_20s_image_y + shield_booster_20s_image.get_height() \
         + 75 + 20
     screen.blit(shield_booster_30s_image, (shield_booster_30s_image_x, shield_booster_30s_image_y))
+    # Display the price
+    shield_booster_30s_price = price_font.render(f"{BOOSTER_PRICES['shield 30 seconds']} apples",
+                                                 True, (255, 255, 255))
+    shield_booster_30s_price_x = shield_booster_30s_image_x \
+        + (shield_booster_30s_image.get_width() - shield_booster_30s_price.get_width()) // 2
+    shield_booster_30s_price_y = shield_booster_30s_image_y \
+        + shield_booster_30s_image.get_height() - shield_booster_30s_price.get_height() - 10
+    screen.blit(shield_booster_30s_price, (shield_booster_30s_price_x, shield_booster_30s_price_y))
     # "Buy" button
     shield_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     shield_booster_30s_buy_btn.rect.x = \
@@ -1024,6 +1105,25 @@ def switch_to_booster_shop() -> None:
                     (shield_booster_20s_image_x, shield_booster_20s_image_y))
         screen.blit(shield_booster_30s_image,
                     (shield_booster_30s_image_x, shield_booster_30s_image_y))
+
+        screen.blit(magnet_booster_10s_price,
+                    (magnet_booster_10s_price_x, magnet_booster_10s_price_y))
+        screen.blit(magnet_booster_20s_price,
+                    (magnet_booster_20s_price_x, magnet_booster_20s_price_y))
+        screen.blit(magnet_booster_30s_price,
+                    (magnet_booster_30s_price_x, magnet_booster_30s_price_y))
+        screen.blit(slow_motion_booster_10s_price,
+                    (slow_motion_booster_10s_price_x, slow_motion_booster_10s_price_y))
+        screen.blit(slow_motion_booster_20s_price,
+                    (slow_motion_booster_20s_price_x, slow_motion_booster_20s_price_y))
+        screen.blit(slow_motion_booster_30s_price,
+                    (slow_motion_booster_30s_price_x, slow_motion_booster_30s_price_y))
+        screen.blit(shield_booster_10s_price,
+                    (shield_booster_10s_price_x, shield_booster_10s_price_y))
+        screen.blit(shield_booster_20s_price,
+                    (shield_booster_20s_price_x, shield_booster_20s_price_y))
+        screen.blit(shield_booster_30s_price,
+                    (shield_booster_30s_price_x, shield_booster_30s_price_y))
         booster_shop_elements.draw(screen)
         pygame.display.flip()
 
