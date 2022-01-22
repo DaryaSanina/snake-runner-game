@@ -15,6 +15,7 @@ PAUSE_SCREEN_COLOR = pygame.Color(0, 162, 255, 150)
 GAME_OVER_SCREEN_COLOR = pygame.Color(255, 0, 0, 128)
 NEW_BEST_SCORE_SCREEN_COLOR = pygame.Color(255, 255, 0, 128)
 SHOP_SCREEN_COLOR = pygame.Color("#E5CA77")
+SHIELD_COLOR = pygame.Color((255, 210, 0))
 
 SKIN_PRICES = {"lava": 25}
 BOOSTER_PRICES = {"magnet 10 seconds": 10, "magnet 20 seconds": 20, "magnet 30 seconds": 30,
@@ -30,9 +31,26 @@ path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
 cur_booster = ""
 cur_booster_activation_time = 0
 
+pygame.mixer.music.set_endevent(pygame.USEREVENT)
+is_menu_theme = False
+is_gameplay_theme = True
+menu_theme_cur_pos = 0
+gameplay_theme_cur_pos = 0
+
+
+def sound_effect(effect_path: str, cur_track_filename=None, cur_track_pos=0) -> None:
+    was_busy = pygame.mixer.music.get_busy()
+    pygame.mixer.music.load(effect_path)
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
+        pass
+    if was_busy and cur_track_filename is not None:
+        pygame.mixer.music.load(cur_track_filename)
+        pygame.mixer.music.play(start=cur_track_pos / 1000)
+
 
 def start_game() -> None:
-    global running
+    global running, available_boosters, available_booster_names, menu_theme_cur_pos, is_menu_theme
 
     screen.fill(START_SCREEN_COLOR)  # Fill the screen with START_SCREEN_COLOR
 
@@ -48,8 +66,7 @@ def start_game() -> None:
     shop_btn = Button(load_image('textures\\buttons\\shop_btn.png'))
     shop_btn.rect = shop_btn.image.get_rect()
     shop_btn.rect.x = play_btn.rect.x + play_btn.rect.width \
-        + (screen_width - play_btn.rect.x - play_btn.rect.width
-           - shop_btn.rect.width) // 2
+        + (screen_width - play_btn.rect.x - play_btn.rect.width - shop_btn.rect.width) // 2
     shop_btn.rect.y = (screen_height - shop_btn.rect.height) // 2
     start_screen_btn_group.add(shop_btn)
 
@@ -79,19 +96,43 @@ def start_game() -> None:
     apples_text_y = best_score_text_y + best_score_text.get_height() + 25
     screen.blit(apples_text, (apples_text_x, apples_text_y))
 
+    available_booster_names = get_available_boosters()
+
+    # Load and play the music
+    pygame.mixer.music.load('data\\music\\menu_theme.mp3')
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play()
+
     while running:
+        if is_menu_theme:
+            menu_theme_cur_pos = pygame.mixer.music.get_pos()
+
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
+
+            if event.type == pygame.mixer.music.get_endevent():
+                is_menu_theme = True
+                pygame.mixer.music.load('data\\music\\menu_theme.mp3')
+                pygame.mixer.music.play(start=menu_theme_cur_pos / 1000)
+                menu_theme_cur_pos = 0
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
                 if play_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     restart_game()
                     return
 
                 if shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     switch_to_shop_choosing_screen()
                     return
         pygame.display.flip()
@@ -102,7 +143,7 @@ def pause_game() -> None:
 
     # Delete the pause button
     pause_btn.kill()
-    pygame.draw.rect(screen, GRASS_COLOR, pause_btn.rect)
+    pause_btn_group.draw(screen)
 
     # Fill the screen with an RGBA color (red = 0, green = 162, blue = 255, alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
@@ -138,6 +179,10 @@ def pause_game() -> None:
 
     pause_screen_buttons.draw(screen)
 
+    # Pause the music
+    if pygame.mixer.music.get_busy():
+        pygame.mixer.music.pause()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
@@ -156,7 +201,10 @@ def pause_game() -> None:
                     return
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
                     start_game()
+                    draw_boosters()
                     return
 
         pygame.display.flip()
@@ -164,7 +212,7 @@ def pause_game() -> None:
 
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
-        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock,\
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, \
         frames, score, apple_group, monster_group
 
     # Create a pause button
@@ -198,6 +246,10 @@ def restart_game() -> None:
 
     apple_group = pygame.sprite.Group()
     monster_group = pygame.sprite.Group()
+
+    # Load and play the sound effect
+    pygame.mixer.music.load('data\\music\\gameplay_theme.mp3')
+    pygame.mixer.music.play()
 
     score = 0
 
@@ -281,7 +333,10 @@ def end_game() -> None:
                     return
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
                     start_game()
+                    draw_boosters()
                     return
 
         pygame.display.flip()
@@ -300,6 +355,10 @@ def end_game_game_over() -> None:
     game_over_text_y = (screen_height // 4 - game_over_text.get_height()) // 2
     screen.blit(game_over_text, (game_over_text_x, game_over_text_y))
 
+    # Load and play the sound effect
+    pygame.mixer.music.load('data\\music\\game_over_theme.mp3')
+    pygame.mixer.music.play()
+
 
 def end_game_new_best_score() -> None:
     # Fill the screen with yellow color (alpha = 128)
@@ -314,9 +373,13 @@ def end_game_new_best_score() -> None:
     new_best_score_text_y = (screen_height // 4 - new_best_score_text.get_height()) // 2
     screen.blit(new_best_score_text, (new_best_score_text_x, new_best_score_text_y))
 
+    # Load and play the sound effect
+    pygame.mixer.music.load('data\\music\\new_best_score_theme.mp3')
+    pygame.mixer.music.play()
+
 
 def switch_to_shop_choosing_screen() -> None:
-    global running
+    global running, menu_theme_cur_pos, is_menu_theme
 
     # Fill the screen with SHOP_SCREEN_COLOR
     screen.fill(SHOP_SCREEN_COLOR)
@@ -372,32 +435,54 @@ def switch_to_shop_choosing_screen() -> None:
     screen.blit(boosters_text, (boosters_text_x, boosters_text_y))
 
     while running:
+        if is_menu_theme:
+            menu_theme_cur_pos = pygame.mixer.music.get_pos()
+
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
                 return
 
+            if event.type == pygame.mixer.music.get_endevent():
+                is_menu_theme = True
+                pygame.mixer.music.load('data\\music\\menu_theme.mp3')
+                pygame.mixer.music.play(start=menu_theme_cur_pos / 1000)
+                menu_theme_cur_pos = 0
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
                 if skin_shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     switch_to_skin_shop()
                     return
 
                 if booster_shop_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     switch_to_booster_shop()
                     return
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     start_game()
+                    draw_boosters()
                     return
 
         pygame.display.flip()
 
 
 def switch_to_skin_shop() -> None:
-    global running, cur_skin, path_to_snake_skin, path_to_animated_snake_skin,\
-        path_to_dead_snake_skin, apples
+    global running, cur_skin, path_to_snake_skin, path_to_animated_snake_skin, \
+        path_to_dead_snake_skin, apples, menu_theme_cur_pos, is_menu_theme
 
     # Fill the screen with SHOP_SCREEN_COLOR
     screen.fill(SHOP_SCREEN_COLOR)
@@ -434,6 +519,12 @@ def switch_to_skin_shop() -> None:
     lava_skin_image_x = screen_width // 3 + (screen_width // 3 - lava_skin_image.get_width()) // 2
     lava_skin_image_y = 50
     screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
+    # Display the price
+    if "lava" not in available_skins:
+        price = price_font.render(f"{SKIN_PRICES['lava']} apples", True, (255, 255, 255))
+        price_x = lava_skin_image_x + (lava_skin_image.get_width() - price.get_width()) // 2
+        price_y = lava_skin_image_y + lava_skin_image.get_height() - price.get_height() - 10
+        screen.blit(price, (price_x, price_y))
     # "Buy" button
     if "lava" not in available_skins:
         lava_skin_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
@@ -456,10 +547,19 @@ def switch_to_skin_shop() -> None:
     skin_shop_elements.draw(screen)
 
     while running:
+        if is_menu_theme:
+            menu_theme_cur_pos = pygame.mixer.music.get_pos()
+
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
                 return
+
+            if event.type == pygame.mixer.music.get_endevent():
+                is_menu_theme = True
+                pygame.mixer.music.load('data\\music\\menu_theme.mp3')
+                pygame.mixer.music.play(start=menu_theme_cur_pos / 1000)
+                menu_theme_cur_pos = 0
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -467,6 +567,10 @@ def switch_to_skin_shop() -> None:
                 skin_shop_elements.remove(insufficient_apples_window)
 
                 if slime_skin_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if cur_skin != "slime":  # The skin is bought and not selected
                         slime_skin_buy_btn.image = \
                             load_image('textures\\buttons\\selected_inactive_btn.png')
@@ -478,6 +582,10 @@ def switch_to_skin_shop() -> None:
                     path_to_dead_snake_skin = 'textures\\snake\\snakeSlime_dead.png'
 
                 if lava_skin_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     skin_price = 0
                     if "lava" not in available_skins:  # The skin is not bought yet
                         skin_price = SKIN_PRICES["lava"]
@@ -492,7 +600,6 @@ def switch_to_skin_shop() -> None:
                             slime_skin_buy_btn.image = \
                                 load_image('textures\\buttons\\select_btn.png')
                     if skin_price <= apples:
-                        cur_skin = "lava"
                         path_to_snake_skin = 'textures\\snake\\snakeLava.png'
                         path_to_animated_snake_skin = 'textures\\snake\\snakeLava_ani.png'
                         path_to_dead_snake_skin = 'textures\\snake\\snakeLava_dead.png'
@@ -500,9 +607,17 @@ def switch_to_skin_shop() -> None:
                         update_database_apples()
                     else:
                         skin_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     start_game()
+                    draw_boosters()
                     return
 
         # Fill the screen with SHOP_SCREEN_COLOR
@@ -510,13 +625,15 @@ def switch_to_skin_shop() -> None:
 
         screen.blit(slime_skin_image, (slime_skin_image_x, slime_skin_image_y))
         screen.blit(lava_skin_image, (lava_skin_image_x, lava_skin_image_y))
+        if "lava" not in available_skins:
+            screen.blit(price, (price_x, price_y))
 
         skin_shop_elements.draw(screen)
         pygame.display.flip()
 
 
 def switch_to_booster_shop() -> None:
-    global running, apples
+    global running, apples, menu_theme_cur_pos, is_menu_theme
 
     # Fill the screen with SHOP_SCREEN_COLOR
     screen.fill(SHOP_SCREEN_COLOR)
@@ -534,6 +651,14 @@ def switch_to_booster_shop() -> None:
     magnet_booster_10s_image_x = (screen_width // 3 - magnet_booster_10s_image.get_width()) // 2
     magnet_booster_10s_image_y = 20
     screen.blit(magnet_booster_10s_image, (magnet_booster_10s_image_x, magnet_booster_10s_image_y))
+    # Display the price
+    magnet_booster_10s_price = price_font.render(f"{BOOSTER_PRICES['magnet 10 seconds']} apples",
+                                                 True, (255, 255, 255))
+    magnet_booster_10s_price_x = magnet_booster_10s_image_x \
+        + (magnet_booster_10s_image.get_width() - magnet_booster_10s_price.get_width()) // 2
+    magnet_booster_10s_price_y = magnet_booster_10s_image_y \
+        + magnet_booster_10s_image.get_height() - magnet_booster_10s_price.get_height() - 10
+    screen.blit(magnet_booster_10s_price, (magnet_booster_10s_price_x, magnet_booster_10s_price_y))
     # "Buy" button
     magnet_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     magnet_booster_10s_buy_btn.rect.x = \
@@ -549,6 +674,14 @@ def switch_to_booster_shop() -> None:
     magnet_booster_20s_image_x = (screen_width // 3 - magnet_booster_20s_image.get_width()) // 2
     magnet_booster_20s_image_y = 20 + magnet_booster_10s_image.get_height() + 75 + 20
     screen.blit(magnet_booster_20s_image, (magnet_booster_20s_image_x, magnet_booster_20s_image_y))
+    # Display the price
+    magnet_booster_20s_price = price_font.render(f"{BOOSTER_PRICES['magnet 20 seconds']} apples",
+                                                 True, (255, 255, 255))
+    magnet_booster_20s_price_x = magnet_booster_20s_image_x \
+        + (magnet_booster_20s_image.get_width() - magnet_booster_20s_price.get_width()) // 2
+    magnet_booster_20s_price_y = magnet_booster_20s_image_y \
+        + magnet_booster_20s_image.get_height() - magnet_booster_20s_price.get_height() - 10
+    screen.blit(magnet_booster_20s_price, (magnet_booster_20s_price_x, magnet_booster_20s_price_y))
     # "Buy" button
     magnet_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     magnet_booster_20s_buy_btn.rect.x = \
@@ -565,6 +698,14 @@ def switch_to_booster_shop() -> None:
     magnet_booster_30s_image_y = magnet_booster_20s_image_y + magnet_booster_20s_image.get_height() \
         + 75 + 20
     screen.blit(magnet_booster_30s_image, (magnet_booster_30s_image_x, magnet_booster_30s_image_y))
+    # Display the price
+    magnet_booster_30s_price = price_font.render(f"{BOOSTER_PRICES['magnet 30 seconds']} apples",
+                                                 True, (255, 255, 255))
+    magnet_booster_30s_price_x = magnet_booster_30s_image_x \
+        + (magnet_booster_30s_image.get_width() - magnet_booster_30s_price.get_width()) // 2
+    magnet_booster_30s_price_y = magnet_booster_30s_image_y \
+        + magnet_booster_30s_image.get_height() - magnet_booster_30s_price.get_height() - 10
+    screen.blit(magnet_booster_30s_price, (magnet_booster_30s_price_x, magnet_booster_30s_price_y))
     # "Buy" button
     magnet_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     magnet_booster_30s_buy_btn.rect.x = \
@@ -582,6 +723,17 @@ def switch_to_booster_shop() -> None:
     slow_motion_booster_10s_image_y = 20
     screen.blit(slow_motion_booster_10s_image,
                 (slow_motion_booster_10s_image_x, slow_motion_booster_10s_image_y))
+    # Display the price
+    slow_motion_booster_10s_price = price_font.render(
+        f"{BOOSTER_PRICES['slow motion 10 seconds']} apples", True, (255, 255, 255))
+    slow_motion_booster_10s_price_x = slow_motion_booster_10s_image_x \
+        + (slow_motion_booster_10s_image.get_width() - slow_motion_booster_10s_price.get_width()) \
+        // 2
+    slow_motion_booster_10s_price_y = slow_motion_booster_10s_image_y \
+        + slow_motion_booster_10s_image.get_height() - slow_motion_booster_10s_price.get_height() \
+        - 10
+    screen.blit(slow_motion_booster_10s_price,
+                (slow_motion_booster_10s_price_x, slow_motion_booster_10s_price_y))
     # "Buy" button
     slow_motion_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
                                              size=(150, 75))
@@ -600,6 +752,17 @@ def switch_to_booster_shop() -> None:
     slow_motion_booster_20s_image_y = 20 + slow_motion_booster_10s_image.get_height() + 75 + 20
     screen.blit(slow_motion_booster_20s_image,
                 (slow_motion_booster_20s_image_x, slow_motion_booster_20s_image_y))
+    # Display the price
+    slow_motion_booster_20s_price = price_font.render(
+        f"{BOOSTER_PRICES['slow motion 20 seconds']} apples", True, (255, 255, 255))
+    slow_motion_booster_20s_price_x = slow_motion_booster_20s_image_x \
+        + (slow_motion_booster_20s_image.get_width() - slow_motion_booster_20s_price.get_width()) \
+        // 2
+    slow_motion_booster_20s_price_y = slow_motion_booster_20s_image_y \
+        + slow_motion_booster_20s_image.get_height() - slow_motion_booster_20s_price.get_height() \
+        - 10
+    screen.blit(slow_motion_booster_20s_price,
+                (slow_motion_booster_20s_price_x, slow_motion_booster_20s_price_y))
     # "Buy" button
     slow_motion_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
                                              size=(150, 75))
@@ -619,6 +782,17 @@ def switch_to_booster_shop() -> None:
         + slow_motion_booster_20s_image.get_height() + 75 + 20
     screen.blit(slow_motion_booster_30s_image,
                 (slow_motion_booster_30s_image_x, slow_motion_booster_30s_image_y))
+    # Display the price
+    slow_motion_booster_30s_price = price_font.render(
+        f"{BOOSTER_PRICES['slow motion 30 seconds']} apples", True, (255, 255, 255))
+    slow_motion_booster_30s_price_x = slow_motion_booster_30s_image_x \
+        + (slow_motion_booster_30s_image.get_width() - slow_motion_booster_30s_price.get_width()) \
+        // 2
+    slow_motion_booster_30s_price_y = slow_motion_booster_30s_image_y \
+        + slow_motion_booster_30s_image.get_height() - slow_motion_booster_30s_price.get_height() \
+        - 10
+    screen.blit(slow_motion_booster_30s_price,
+                (slow_motion_booster_30s_price_x, slow_motion_booster_30s_price_y))
     # "Buy" button
     slow_motion_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'),
                                              size=(150, 75))
@@ -636,6 +810,14 @@ def switch_to_booster_shop() -> None:
         + (screen_width // 3 - shield_booster_10s_image.get_width()) // 2
     shield_booster_10s_image_y = 20
     screen.blit(shield_booster_10s_image, (shield_booster_10s_image_x, shield_booster_10s_image_y))
+    # Display the price
+    shield_booster_10s_price = price_font.render(f"{BOOSTER_PRICES['shield 10 seconds']} apples",
+                                                 True, (255, 255, 255))
+    shield_booster_10s_price_x = shield_booster_10s_image_x \
+        + (shield_booster_10s_image.get_width() - shield_booster_10s_price.get_width()) // 2
+    shield_booster_10s_price_y = shield_booster_10s_image_y \
+        + shield_booster_10s_image.get_height() - shield_booster_10s_price.get_height() - 10
+    screen.blit(shield_booster_10s_price, (shield_booster_10s_price_x, shield_booster_10s_price_y))
     # "Buy" button
     shield_booster_10s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     shield_booster_10s_buy_btn.rect.x = \
@@ -652,6 +834,14 @@ def switch_to_booster_shop() -> None:
         + (screen_width // 3 - shield_booster_20s_image.get_width()) // 2
     shield_booster_20s_image_y = 20 + shield_booster_10s_image.get_height() + 75 + 20
     screen.blit(shield_booster_20s_image, (shield_booster_20s_image_x, shield_booster_20s_image_y))
+    # Display the price
+    shield_booster_20s_price = price_font.render(f"{BOOSTER_PRICES['shield 20 seconds']} apples",
+                                                 True, (255, 255, 255))
+    shield_booster_20s_price_x = shield_booster_20s_image_x \
+        + (shield_booster_20s_image.get_width() - shield_booster_20s_price.get_width()) // 2
+    shield_booster_20s_price_y = shield_booster_20s_image_y \
+        + shield_booster_20s_image.get_height() - shield_booster_20s_price.get_height() - 10
+    screen.blit(shield_booster_20s_price, (shield_booster_20s_price_x, shield_booster_20s_price_y))
     # "Buy" button
     shield_booster_20s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     shield_booster_20s_buy_btn.rect.x = \
@@ -669,6 +859,14 @@ def switch_to_booster_shop() -> None:
     shield_booster_30s_image_y = shield_booster_20s_image_y + shield_booster_20s_image.get_height() \
         + 75 + 20
     screen.blit(shield_booster_30s_image, (shield_booster_30s_image_x, shield_booster_30s_image_y))
+    # Display the price
+    shield_booster_30s_price = price_font.render(f"{BOOSTER_PRICES['shield 30 seconds']} apples",
+                                                 True, (255, 255, 255))
+    shield_booster_30s_price_x = shield_booster_30s_image_x \
+        + (shield_booster_30s_image.get_width() - shield_booster_30s_price.get_width()) // 2
+    shield_booster_30s_price_y = shield_booster_30s_image_y \
+        + shield_booster_30s_image.get_height() - shield_booster_30s_price.get_height() - 10
+    screen.blit(shield_booster_30s_price, (shield_booster_30s_price_x, shield_booster_30s_price_y))
     # "Buy" button
     shield_booster_30s_buy_btn = Button(load_image('textures\\buttons\\buy_btn.png'), size=(150, 75))
     shield_booster_30s_buy_btn.rect.x = \
@@ -686,10 +884,19 @@ def switch_to_booster_shop() -> None:
     booster_shop_elements.draw(screen)
 
     while running:
+        if is_menu_theme:
+            menu_theme_cur_pos = pygame.mixer.music.get_pos()
+
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
                 return
+
+            if event.type == pygame.mixer.music.get_endevent():
+                is_menu_theme = True
+                pygame.mixer.music.load('data\\music\\menu_theme.mp3')
+                pygame.mixer.music.play(start=menu_theme_cur_pos / 1000)
+                menu_theme_cur_pos = 0
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -697,6 +904,10 @@ def switch_to_booster_shop() -> None:
                 booster_shop_elements.remove(insufficient_apples_window)
 
                 if magnet_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["magnet 10 seconds"] <= apples:
                         available_booster_names["magnet 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 10 seconds"]
@@ -704,8 +915,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if magnet_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["magnet 20 seconds"] <= apples:
                         available_booster_names["magnet 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 20 seconds"]
@@ -713,8 +931,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if magnet_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["magnet 30 seconds"] <= apples:
                         available_booster_names["magnet 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["magnet 30 seconds"]
@@ -722,8 +947,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if slow_motion_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["slow motion 10 seconds"] <= apples:
                         available_booster_names["slow motion 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 10 seconds"]
@@ -731,8 +963,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if slow_motion_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["slow motion 20 seconds"] <= apples:
                         available_booster_names["slow motion 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 20 seconds"]
@@ -740,8 +979,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if slow_motion_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["slow motion 30 seconds"] <= apples:
                         available_booster_names["slow motion 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["slow motion 30 seconds"]
@@ -749,8 +995,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if shield_booster_10s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["shield 10 seconds"] <= apples:
                         available_booster_names["shield 10 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 10 seconds"]
@@ -758,8 +1011,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if shield_booster_20s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["shield 20 seconds"] <= apples:
                         available_booster_names["shield 20 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 20 seconds"]
@@ -767,8 +1027,15 @@ def switch_to_booster_shop() -> None:
                         update_database_apples()
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
 
                 if shield_booster_30s_buy_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
+
                     if BOOSTER_PRICES["shield 30 seconds"] <= apples:
                         available_booster_names["shield 30 seconds"] += 1
                         apples -= BOOSTER_PRICES["shield 30 seconds"]
@@ -777,8 +1044,16 @@ def switch_to_booster_shop() -> None:
                     else:
                         booster_shop_elements.add(insufficient_apples_window)
 
+                        is_menu_theme = False
+                        pygame.mixer.music.load('data\\music\\click.ogg')
+                        pygame.mixer.music.play()
+
                 if home_btn.rect.collidepoint(mouse_x, mouse_y):
+                    is_menu_theme = False
+                    pygame.mixer.music.load('data\\music\\click.ogg')
+                    pygame.mixer.music.play()
                     start_game()
+                    draw_boosters()
                     return
 
         screen.fill(SHOP_SCREEN_COLOR)
@@ -800,12 +1075,31 @@ def switch_to_booster_shop() -> None:
                     (shield_booster_20s_image_x, shield_booster_20s_image_y))
         screen.blit(shield_booster_30s_image,
                     (shield_booster_30s_image_x, shield_booster_30s_image_y))
+
+        screen.blit(magnet_booster_10s_price,
+                    (magnet_booster_10s_price_x, magnet_booster_10s_price_y))
+        screen.blit(magnet_booster_20s_price,
+                    (magnet_booster_20s_price_x, magnet_booster_20s_price_y))
+        screen.blit(magnet_booster_30s_price,
+                    (magnet_booster_30s_price_x, magnet_booster_30s_price_y))
+        screen.blit(slow_motion_booster_10s_price,
+                    (slow_motion_booster_10s_price_x, slow_motion_booster_10s_price_y))
+        screen.blit(slow_motion_booster_20s_price,
+                    (slow_motion_booster_20s_price_x, slow_motion_booster_20s_price_y))
+        screen.blit(slow_motion_booster_30s_price,
+                    (slow_motion_booster_30s_price_x, slow_motion_booster_30s_price_y))
+        screen.blit(shield_booster_10s_price,
+                    (shield_booster_10s_price_x, shield_booster_10s_price_y))
+        screen.blit(shield_booster_20s_price,
+                    (shield_booster_20s_price_x, shield_booster_20s_price_y))
+        screen.blit(shield_booster_30s_price,
+                    (shield_booster_30s_price_x, shield_booster_30s_price_y))
         booster_shop_elements.draw(screen)
         pygame.display.flip()
 
 
 def add_score_to_database() -> None:
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     cur.execute('INSERT INTO score VALUES (?)', (score,))
@@ -816,7 +1110,7 @@ def get_max_score() -> int:
     """
     :returns current maximal score from the database (int)
     """
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     all_scores = cur.execute('SELECT score FROM score').fetchall()
@@ -829,7 +1123,7 @@ def get_max_score() -> int:
 
 
 def update_database_apples() -> None:
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     cur.execute('UPDATE apples SET apples = (?)', (apples,))
@@ -837,14 +1131,14 @@ def update_database_apples() -> None:
 
 
 def get_number_of_apples() -> int:
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     return cur.execute('SELECT apples FROM apples').fetchall()[0][0]
 
 
 def add_skin_to_database(skin: str) -> None:
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     cur.execute('INSERT INTO skins VALUES (?)', (skin,))
@@ -852,7 +1146,7 @@ def add_skin_to_database(skin: str) -> None:
 
 
 def get_available_skins() -> list:
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     skins = cur.execute('SELECT skin FROM skins').fetchall()
@@ -861,7 +1155,7 @@ def get_available_skins() -> list:
 
 
 def update_database_boosters() -> None:
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     cur.execute('UPDATE boosters SET magnet_10_seconds = ?',
@@ -886,7 +1180,7 @@ def update_database_boosters() -> None:
 
 
 def get_available_boosters() -> dict:
-    con = sqlite3.connect(os.path.abspath('snake-runner-game\\data\\databases\\user_data.db'))
+    con = sqlite3.connect('data\\databases\\user_data.db')
     cur = con.cursor()
 
     boosters = dict()
@@ -1062,27 +1356,31 @@ def move_monsters() -> None:
 
 
 def draw_boosters() -> None:
+    global available_booster_group
+    available_booster_group = pygame.sprite.Group()
     booster_y = screen_height - 50 - 10
     for booster_name in available_booster_names.keys():
         if available_booster_names[booster_name] > 0:
             if booster_name == "magnet 10 seconds":
                 booster = Booster(load_image('images\\magnet_booster_10s.png'), 10)
-            if booster_name == "magnet 20 seconds":
+            elif booster_name == "magnet 20 seconds":
                 booster = Booster(load_image('images\\magnet_booster_20s.png'), 20)
-            if booster_name == "magnet 30 seconds":
+            elif booster_name == "magnet 30 seconds":
                 booster = Booster(load_image('images\\magnet_booster_30s.png'), 30)
-            if booster_name == "slow motion 10 seconds":
+            elif booster_name == "slow motion 10 seconds":
                 booster = Booster(load_image('images\\slow_motion_booster_10s.png'), 10)
-            if booster_name == "slow motion 20 seconds":
+            elif booster_name == "slow motion 20 seconds":
                 booster = Booster(load_image('images\\slow_motion_booster_20s.png'), 20)
-            if booster_name == "slow motion 30 seconds":
+            elif booster_name == "slow motion 30 seconds":
                 booster = Booster(load_image('images\\slow_motion_booster_30s.png'), 30)
-            if booster_name == "shield 10 seconds":
+            elif booster_name == "shield 10 seconds":
                 booster = Booster(load_image('images\\shield_booster_10s.png'), 10)
-            if booster_name == "shield 20 seconds":
+            elif booster_name == "shield 20 seconds":
                 booster = Booster(load_image('images\\shield_booster_20s.png'), 20)
-            if booster_name == "shield 30 seconds":
+            elif booster_name == "shield 30 seconds":
                 booster = Booster(load_image('images\\shield_booster_30s.png'), 30)
+            else:
+                continue
             booster.rect.x = 10
             booster.rect.y = booster_y
             booster_y -= booster.rect.height + 10
@@ -1100,6 +1398,8 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(screen_size)
 
     pygame.display.set_caption("Snake Runner")
+
+    price_font = pygame.font.SysFont('comicsansms', 30)
 
     # Create a pause button
     pause_btn_group = pygame.sprite.Group()
@@ -1142,8 +1442,6 @@ if __name__ == '__main__':
     available_boosters = dict()
     available_booster_group = pygame.sprite.Group()
 
-    draw_boosters()
-
     # Create clock to move the road more smoothly
     clock = pygame.time.Clock()
 
@@ -1152,16 +1450,30 @@ if __name__ == '__main__':
 
     running = True
     start_game()
+    draw_boosters()
+
+    # Load and play the music
+    pygame.mixer.music.load('data\\music\\gameplay_theme.mp3')
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play()
+    is_menu_theme = False
+    is_gameplay_theme = True
+
     while running:
         tick = clock.tick(fps)
+
+        if is_gameplay_theme:
+            gameplay_theme_cur_pos = pygame.mixer.music.get_pos()
+
         for event in pygame.event.get():
             if event.type == pygame.WINDOWCLOSE:
                 running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                if pause_btn.rect.collidepoint(mouse_x, mouse_y):
-                    pause_game()
+            if event.type == pygame.mixer.music.get_endevent():
+                is_gameplay_theme = True
+                pygame.mixer.music.load('data\\music\\gameplay_theme.mp3')
+                pygame.mixer.music.play(start=gameplay_theme_cur_pos / 1000)
+                gameplay_theme_cur_pos = 0
 
             if event.type == pygame.KEYDOWN:
                 if (event.key == pygame.K_LEFT or event.key == pygame.K_a) \
@@ -1227,24 +1539,40 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
-                for monster in monster_group.sprites():
-                    if monster.rect.collidepoint(mouse_x, mouse_y):
-                        # If the user click on a monster
-                        monster.attack_monster()
-                        break
+                if pause_btn.rect.collidepoint(mouse_x, mouse_y):
+                    pause_game()
+                    pygame.mixer.music.unpause()
+                    continue
 
                 for booster in available_booster_group:
                     if booster.rect.collidepoint(mouse_x, mouse_y):
+                        is_gameplay_theme = False
+                        pygame.mixer.music.load('data\\music\\activate_booster.ogg')
+                        pygame.mixer.music.play()
+
                         cur_booster = available_boosters[booster]
                         cur_booster_activation_time = time.time()
                         available_booster_names[cur_booster] -= 1
                         update_database_boosters()
                         if available_booster_names[cur_booster] <= 0:
+                            available_booster_names[cur_booster] = 0
                             del available_boosters[booster]
                             available_booster_group.remove(booster)
                             draw_boosters()
                         if cur_booster.find("slow motion") != -1:
                             snake.velocity //= 2
+                            if snake.velocity == 0:
+                                snake.velocity = 1
+                        break
+                else:
+                    is_gameplay_theme = False
+                    pygame.mixer.music.load('data\\music\\shot.ogg')
+                    pygame.mixer.music.play()
+
+                for monster in monster_group.sprites():
+                    if monster.rect.collidepoint(mouse_x, mouse_y):
+                        # If the user click on a monster
+                        monster.attack_monster()
                         break
 
         if snake.direction == "up":
@@ -1516,33 +1844,6 @@ if __name__ == '__main__':
                     snake_tail.rect.x = snake_tail_x
                     snake_tail.rect.y = snake_tail_y
 
-        if cur_booster == "magnet 10 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
-                cur_booster = ""
-            else:
-                for apple in apple_group:
-                    if apple.rect.y > 10:
-                        apples += 1
-                        apple.kill()
-
-        elif cur_booster == "magnet 20 seconds":
-            if time.time() - cur_booster_activation_time >= 20 * 1000:
-                cur_booster = ""
-            else:
-                for apple in apple_group:
-                    if apple.rect.y > 10:
-                        apples += 1
-                        apple.kill()
-
-        elif cur_booster == "magnet 30 seconds":
-            if time.time() - cur_booster_activation_time >= 30 * 1000:
-                cur_booster = ""
-            else:
-                for apple in apple_group:
-                    if apple.rect.y > 10:
-                        apples += 1
-                        apple.kill()
-
         snake_head_point.update(snake)  # Move the snake's head point
         snake_group.draw(screen)  # Draw the snake
         apple_group.draw(screen)  # Draw apples
@@ -1564,15 +1865,47 @@ if __name__ == '__main__':
                              for connection in road_connections]):
             end_game()
 
-        if cur_booster == "shield 10 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
+        # Deactivate current booster if it's usage time >= possible booster usage time
+        if cur_booster == "magnet 10 seconds":
+            if time.time() - cur_booster_activation_time >= 10:
+                cur_booster = ""
+        elif cur_booster == "magnet 20 seconds":
+            if time.time() - cur_booster_activation_time >= 20:
+                cur_booster = ""
+        elif cur_booster == "magnet 30 seconds":
+            if time.time() - cur_booster_activation_time >= 30:
+                cur_booster = ""
+
+        elif cur_booster == "shield 10 seconds":
+            if time.time() - cur_booster_activation_time >= 10:
                 cur_booster = ""
         elif cur_booster == "shield 20 seconds":
-            if time.time() - cur_booster_activation_time >= 20 * 1000:
+            if time.time() - cur_booster_activation_time >= 20:
                 cur_booster = ""
         elif cur_booster == "shield 30 seconds":
-            if time.time() - cur_booster_activation_time >= 30 * 1000:
+            if time.time() - cur_booster_activation_time >= 30:
                 cur_booster = ""
+
+        # Collect apples if current booster is a magnet
+        if cur_booster.find("magnet") != -1:
+            for apple in apple_group:
+                if apple.rect.y > 10:
+                    apples += 1
+                    apple.kill()
+
+        # Booster visual effects
+        if cur_booster.find("magnet") != -1:
+            magnet_surface = load_image('textures\\boosters\\magnet.png')
+            magnet_surface = pygame.transform.scale(magnet_surface,
+                                                    (snake.rect.width, snake.rect.width))
+            screen.blit(magnet_surface, (snake.rect.x, snake.rect.y - magnet_surface.get_height()))
+        if cur_booster.find("shield") != -1:
+            shield_surface = pygame.Surface((500, 500))
+            shield_surface.set_colorkey((0, 0, 0))
+            shield_surface.set_alpha(100)
+            pygame.draw.circle(shield_surface, SHIELD_COLOR, (250, 250), 250)
+            screen.blit(shield_surface, (snake_head_point.rect.x - 250,
+                                         snake_head_point.rect.y - 250))
 
         # If the snake touches a monster and shield is not activated, end the game
         if pygame.sprite.spritecollideany(snake, monster_group) and cur_booster.find("shield") == -1:
@@ -1585,15 +1918,15 @@ if __name__ == '__main__':
         score += 1
 
         if cur_booster == "slow motion 10 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
+            if time.time() - cur_booster_activation_time >= 10:
                 cur_booster = ""
                 snake.velocity *= 2
         elif cur_booster == "slow motion 20 seconds":
-            if time.time() - cur_booster_activation_time >= 20 * 1000:
+            if time.time() - cur_booster_activation_time >= 20:
                 cur_booster = ""
                 snake.velocity *= 2
         elif cur_booster == "slow motion 30 seconds":
-            if time.time() - cur_booster_activation_time >= 10 * 1000:
+            if time.time() - cur_booster_activation_time >= 30:
                 cur_booster = ""
                 snake.velocity *= 2
         else:
