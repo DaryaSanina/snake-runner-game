@@ -41,7 +41,6 @@ def sound_effect(effect_path: str, cur_track_filename=None, cur_track_pos=0) -> 
         pass
     if was_busy and cur_track_filename is not None:
         pygame.mixer.music.load(cur_track_filename)
-        print(cur_track_pos)
         pygame.mixer.music.play(start=cur_track_pos / 1000)
 
 
@@ -62,8 +61,7 @@ def start_game() -> None:
     shop_btn = Button(load_image('textures\\buttons\\shop_btn.png'))
     shop_btn.rect = shop_btn.image.get_rect()
     shop_btn.rect.x = play_btn.rect.x + play_btn.rect.width \
-        + (screen_width - play_btn.rect.x - play_btn.rect.width
-           - shop_btn.rect.width) // 2
+        + (screen_width - play_btn.rect.x - play_btn.rect.width - shop_btn.rect.width) // 2
     shop_btn.rect.y = (screen_height - shop_btn.rect.height) // 2
     start_screen_btn_group.add(shop_btn)
 
@@ -114,7 +112,7 @@ def start_game() -> None:
                 if play_btn.rect.collidepoint(mouse_x, mouse_y):
                     sound_effect('snake-runner-game\\data\\music\\click.ogg',
                                  cur_track_filename=os.path.abspath(
-                                    'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
                                  cur_track_pos=pygame.mixer.music.get_pos())
                     restart_game()
                     return
@@ -122,7 +120,7 @@ def start_game() -> None:
                 if shop_btn.rect.collidepoint(mouse_x, mouse_y):
                     sound_effect('snake-runner-game\\data\\music\\click.ogg',
                                  cur_track_filename=os.path.abspath(
-                                    'snake-runner-game\\data\\music\\menu_theme.mp3'),
+                                     'snake-runner-game\\data\\music\\menu_theme.mp3'),
                                  cur_track_pos=pygame.mixer.music.get_pos())
                     switch_to_shop_choosing_screen()
                     return
@@ -203,7 +201,7 @@ def pause_game() -> None:
 
 def restart_game() -> None:
     global pause_btn_group, pause_btn, snake_group, snake, full_turned_snake_image, \
-        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock,\
+        full_snake_image, snake_tail, snake_head_point, road_parts, road_connections, clock, \
         frames, score, apple_group, monster_group
 
     # Create a pause button
@@ -466,7 +464,7 @@ def switch_to_shop_choosing_screen() -> None:
 
 
 def switch_to_skin_shop() -> None:
-    global running, cur_skin, path_to_snake_skin, path_to_animated_snake_skin,\
+    global running, cur_skin, path_to_snake_skin, path_to_animated_snake_skin, \
         path_to_dead_snake_skin, apples
 
     # Fill the screen with SHOP_SCREEN_COLOR
@@ -1333,12 +1331,6 @@ if __name__ == '__main__':
             if event.type == pygame.mixer.music.get_endevent():
                 pygame.mixer.music.play()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                if pause_btn.rect.collidepoint(mouse_x, mouse_y):
-                    pause_game()
-                    pygame.mixer.music.unpause()
-
             if event.type == pygame.KEYDOWN:
                 if (event.key == pygame.K_LEFT or event.key == pygame.K_a) \
                         and snake.direction == 'up':
@@ -1403,14 +1395,17 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
 
-                for monster in monster_group.sprites():
-                    if monster.rect.collidepoint(mouse_x, mouse_y):
-                        # If the user click on a monster
-                        monster.attack_monster()
-                        break
+                if pause_btn.rect.collidepoint(mouse_x, mouse_y):
+                    pause_game()
+                    pygame.mixer.music.unpause()
+                    continue
 
                 for booster in available_booster_group:
                     if booster.rect.collidepoint(mouse_x, mouse_y):
+                        sound_effect(
+                            'snake-runner-game\\data\\music\\activate_booster.ogg',
+                            cur_track_filename='snake-runner-game\\data\\music\\gameplay_theme.mp3',
+                            cur_track_pos=pygame.mixer.music.get_pos())
                         cur_booster = available_boosters[booster]
                         cur_booster_activation_time = time.time()
                         available_booster_names[cur_booster] -= 1
@@ -1424,6 +1419,17 @@ if __name__ == '__main__':
                             snake.velocity //= 2
                             if snake.velocity == 0:
                                 snake.velocity = 1
+                        break
+                else:
+                    sound_effect(
+                        'snake-runner-game\\data\\music\\shot.ogg',
+                        cur_track_filename='snake-runner-game\\data\\music\\gameplay_theme.mp3',
+                        cur_track_pos=pygame.mixer.music.get_pos())
+
+                for monster in monster_group.sprites():
+                    if monster.rect.collidepoint(mouse_x, mouse_y):
+                        # If the user click on a monster
+                        monster.attack_monster()
                         break
 
         if snake.direction == "up":
