@@ -9,7 +9,7 @@ BUTTON_DIAMETER = 100
 
 
 def load_image(name, color_key=None):
-    fullname = os.path.abspath(os.path.join('snake-runner-game\\data', name))
+    fullname = os.path.abspath(os.path.join('data', name))
     if not os.path.isfile(fullname):
         print(f"File '{fullname}' not found")
         sys.exit()
