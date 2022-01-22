@@ -132,7 +132,7 @@ def pause_game() -> None:
 
     # Delete the pause button
     pause_btn.kill()
-    pygame.draw.rect(screen, GRASS_COLOR, pause_btn.rect)
+    pause_btn_group.draw(screen)
 
     # Fill the screen with an RGBA color (red = 0, green = 162, blue = 255, alpha = 150)
     surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
