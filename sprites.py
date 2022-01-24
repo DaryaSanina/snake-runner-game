@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import random
 from PIL import Image
 
 SNAKE_DIRECTIONS = ["up", "left", "right"]
@@ -8,11 +9,12 @@ BUTTON_DIAMETER = 100
 
 
 def load_image(name, color_key=None):
-    fullname = os.path.abspath(os.path.join('snake-runner-game\\data', name))
+    fullname = os.path.abspath(os.path.join('data', name))
     if not os.path.isfile(fullname):
         print(f"File '{fullname}' not found")
         sys.exit()
     image = pygame.image.load(fullname)
+    image.set_colorkey(color_key)
     return image
 
 
@@ -27,10 +29,10 @@ def crop_image(image, left, top, right, bottom):
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, image: pygame.Surface, *group):
+    def __init__(self, image: pygame.Surface, *group, size=(BUTTON_DIAMETER, BUTTON_DIAMETER)):
         super(Button, self).__init__(*group)
         self.image = image
-        self.image = pygame.transform.scale(self.image, (BUTTON_DIAMETER, BUTTON_DIAMETER))
+        self.image = pygame.transform.scale(self.image, size)
         self.rect = self.image.get_rect()
 
 
@@ -241,13 +243,40 @@ class Monster(pygame.sprite.Sprite):
     def __init__(self, *group):
         super(Monster, self).__init__(*group)
 
-    # TODO
-    pass
+        possible_images = [load_image('textures\\monsters\\alienBeige.png'),
+                           load_image('textures\\monsters\\alienBlue.png'),
+                           load_image('textures\\monsters\\alienGreen.png'),
+                           load_image('textures\\monsters\\alienPink.png'),
+                           load_image('textures\\monsters\\alienYellow.png')]
+        self.image = random.choice(possible_images)
+        self.rect = self.image.get_rect()
+
+    def attack_monster(self):
+        self.kill()
 
 
 class Apple(pygame.sprite.Sprite):
     def __init__(self, *group):
         super(Apple, self).__init__(*group)
 
-    # TODO
-    pass
+        self.image = load_image('textures\\apple\\apple.png')
+        self.image = pygame.transform.scale(self.image, (50, 50))
+        self.rect = self.image.get_rect()
+
+
+class Booster(pygame.sprite.Sprite):
+    def __init__(self, image, duration, *group):
+        super(Booster, self).__init__(*group)
+
+        self.image = pygame.transform.scale(image, (50, 50))
+        self.rect = self.image.get_rect()
+
+        self.duration = duration
+
+
+class InsufficientApplesWindow(pygame.sprite.Sprite):
+    def __init__(self, *group):
+        super(InsufficientApplesWindow, self).__init__(*group)
+
+        self.image = load_image('textures\\popups\\insufficient_apples_popup.png')
+        self.rect = self.image.get_rect()
